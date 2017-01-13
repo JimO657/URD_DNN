@@ -1,0 +1,49 @@
+            R.EvaluateNoReturn "library(h2o)"
+            R.EvaluateNoReturn "h2o.init(nthreads=7, max_mem_size='20G')"
+            R.EvaluateNoReturn "h2o.removeAll()"
+            R.EvaluateNoReturn "df<-read.csv('"&CurrentPath&"/data/ExportFile.csv')"
+            
+            R.EvaluateNoReturn "names(df)[1]<-'ACT'"
+            
+            R.EvaluateNoReturn "data_full<-df[,]"
+            
+            R.EvaluateNoReturn "data_full$Month<-as.factor(data_full$Month)"
+            
+            R.EvaluateNoReturn "YearStart<-2004"
+            
+            R.EvaluateNoReturn "RowStart<-1"
+            
+            R.EvaluateNoReturn "YearEnd<-2014"
+            
+            R.EvaluateNoReturn "RowEnd2014<-3848"
+            R.EvaluateNoReturn "RowEnd2015<-4213"
+             
+            R.EvaluateNoReturn "if(YearEnd==2014) {RowEnd<-RowEnd2014}else if (YearEnd==2015){RowEnd<-RowEnd2015}"
+             
+            R.EvaluateNoReturn "data<-data_full[(RowStart:RowEnd),]"
+            R.EvaluateNoReturn "data.h2o<-as.h2o(data,destination_frame = 'data.h2o')"
+            R.EvaluateNoReturn "data_full.h2o<-as.h2o(data_full, destination_frame = 'data_full.h2o')"
+            R.EvaluateNoReturn "predictors<-c(3:(ncol(data)))"
+            R.EvaluateNoReturn "predictors"
+            R.EvaluateNoReturn "response <- 1"
+            R.EvaluateNoReturn "response"
+            R.EvaluateNoReturn "data.split<-h2o.splitFrame(data.h2o, ratios=c(0.8), destination_frames = c('train_r.h2o','valid_r.h2o') )"
+            R.EvaluateNoReturn "train_r.h2o <- data.split[[1]]"
+            R.EvaluateNoReturn "str(train_r.h2o)"
+             
+            R.EvaluateNoReturn "valid_r.h2o <- data.split[[2]]"
+            R.EvaluateNoReturn "mid<-paste('Rand','GLM','Data_Since',YearStart,'Data_till',YearEnd,'year_end',sep = '_')"
+            R.EvaluateNoReturn "mid"
+            R.EvaluateNoReturn "glm_model_r <- h2o.glm(model_id = mid, training_frame=train_r.h2o, validation_frame=valid_r.h2o, x=predictors, y=response,max_iterations=5000)"
+            R.EvaluateNoReturn "pr.h2o_glm_fd_r<- h2o.predict(glm_model_r, data_full.h2o[,predictors])"
+            R.EvaluateNoReturn "pr.glm_fd.df_r<-  as.data.frame(pr.h2o_glm_fd_r)"
+            R.EvaluateNoReturn "pr.glm_fd_r<-pr.glm_fd.df_r[[1]]"
+            
+            R.EvaluateNoReturn "best_params_r <- glm_model_r@allparameters"
+            R.EvaluateNoReturn "Best_model_param_desc_fd_r<-paste('R_ADHOC','Rand ','Data Starts at ',YearStart,' beginning ','Data Ends at ',YearEnd,' end',best_params_r$activation,' ',toString(best_params_r$hidden),' ','l1=',best_params_r$l1,' l2=',best_params_r$l2,'_fd.csv',sep='')"
+            R.EvaluateNoReturn "Best_model_param_desc_fd_r"
+            
+            R.EvaluateNoReturn "export_df_pr_fd_r<-cbind(predict_glm=pr.glm_fd_r, data_full)"
+             
+            R.EvaluateNoReturn "write.csv(export_df_pr_fd_r, file='"&CurrentPath&"/results/ExportFile_GLM.csv', row.names=FALSE)"
+            R.EvaluateNoReturn "h2o.shutdown(prompt = FALSE)"
