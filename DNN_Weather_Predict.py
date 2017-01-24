@@ -1,5 +1,7 @@
 import pandas as pd
 import h2o
+import os
+from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
 
@@ -12,7 +14,8 @@ if __name__=='__main__':
     h2o.remove_all()
 
     # Import data to pandas dataframe
-    data_full = pd.read_csv('data_2015/ExportFileR.csv')
+    data_full = pd.read_csv(
+        '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/data_2015/ExportFileR.csv')
 
     # Set start and end dates for training
     date_start = '2006-Jan-01'
@@ -24,12 +27,14 @@ if __name__=='__main__':
 
     # Create training data slice and convert to H2OFrame
     train_pd = data_full[start_row:end_row+1]
-    train = h2o.H2OFrame(train_pd)
+    train_pd.drop('Date1', axis=1, inplace=True)
+    train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
     training, validation = train.split_frame(ratios=[0.8])
 
     # Create test data slice and convert to H2OFrame
-    test_pd = data_full[end_row + 1:]
-    test = h2o.H2OFrame(test_pd)
+    test_pd = data_full[end_row + 1:]#6844]
+    test_pd.drop('Date1', axis=1, inplace=True)
+    test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 
     # Define predictors and output
     predictors = list(train.columns)[2:]
@@ -41,3 +46,20 @@ if __name__=='__main__':
                                      l1=0, l2=0, score_training_samples=5, score_validation_samples=5)
     model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
+    # Save DNN model
+    save_path = '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/'
+    try:
+        h2o.save_model(model, path=save_path)
+    except exceptions.H2OServerError:
+        os.remove(save_path + model_id)
+        h2o.save_model(model, path=save_path)
+
+    # Run model prediction on original data
+    original_prediction = model.predict(test)
+
+    # Import weather data to pandas dataframe
+    data_weather = pd.read_csv(
+        '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/data_2015/ExportFileWeather_2010.csv')
+    data_weather.drop('Date1', axis=1, inplace=True)
+    test_weather = h2o.H2OFrame(data_weather, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+    weather_prediction = model.predict(test_weather)
