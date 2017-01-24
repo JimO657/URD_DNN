@@ -1,3 +1,5 @@
+# This script does stuff, allegedly
+
 import pandas as pd
 import h2o
 import os
@@ -63,3 +65,5 @@ if __name__=='__main__':
     data_weather.drop('Date1', axis=1, inplace=True)
     test_weather = h2o.H2OFrame(data_weather, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
     weather_prediction = model.predict(test_weather)
+
+    #
