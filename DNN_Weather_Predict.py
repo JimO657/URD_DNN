@@ -91,13 +91,13 @@ pd_predict.reset_index(inplace=True)
 pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
 pd_predict['Date'] = pd_predict.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
 
-# Create dataframe that subtracts
-delta = pd_predict.predict - pd_real_bymonth.ACT
+# Create dataframe for error between prediction and real data
+error = pd_predict.predict - pd_real_bymonth.ACT
 
 # Plot with plotly
 trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'], name='Real')
 trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'], name='Predicted')
-trace3 = go.Bar(x=pd_real_bymonth['Date'], y=delta, name='Delta')
+trace3 = go.Bar(x=pd_real_bymonth['Date'], y=error, name='Error')
 data = [trace1, trace2, trace3]
 layout = dict(title='URD Prediction vs. Actual',
               xaxis=dict(title='Date', rangeslider=dict(), type='date'),
