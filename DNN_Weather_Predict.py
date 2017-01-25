@@ -17,7 +17,7 @@ if __name__=='__main__':
 
     # Import data to pandas dataframe
     data_full = pd.read_csv(
-        '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/data_2015/ExportFileR.csv')
+        '~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
 
     # Set start and end dates for training
     date_start = '2006-Jan-01'
@@ -49,7 +49,7 @@ if __name__=='__main__':
     model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
     # Save DNN model
-    save_path = '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/'
+    save_path = '~/0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models'
     try:
         h2o.save_model(model, path=save_path)
     except exceptions.H2OServerError:
@@ -61,7 +61,7 @@ if __name__=='__main__':
 
     # Import weather data to pandas dataframe
     data_weather = pd.read_csv(
-        '/home/norayr/1MyDataBases-short/100deepwater-master/ADHOC_Qlikview/data_2015/ExportFileWeather_2010.csv')
+        '~/0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/data_2015/ExportFileWeather_2010.csv')
     data_weather.drop('Date1', axis=1, inplace=True)
     test_weather = h2o.H2OFrame(data_weather, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
     weather_prediction = model.predict(test_weather)
