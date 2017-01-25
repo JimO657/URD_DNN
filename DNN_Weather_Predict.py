@@ -3,8 +3,9 @@ import h2o
 import os
 from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
-import plotly.plotly as py
+import plotly
 import plotly.graph_objs as go
+from datetime import datetime
 
 
 if __name__=='__main__':
@@ -34,8 +35,8 @@ if __name__=='__main__':
     training, validation = train.split_frame(ratios=[0.8])
 
     # Create test data slice and convert to H2OFrame
-    test_pd_all = data_full[end_row + 1:]#6844]
-    test_pd = test_pd_all.drop('Date1', 1)
+    test_pd = data_full[end_row + 1:]#6844]
+    test_pd.drop('Date1', axis=1, inplace=True)
     test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 
     # Define predictors and output
@@ -60,12 +61,33 @@ if __name__=='__main__':
     original_prediction = model.predict(test)
 
     # Import weather data to pandas dataframe
-    data_weather_all = pd.read_csv(
-        '~/0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/data_2015/ExportFileWeather_2010.csv')
-    data_weather = data_weather_all.drop('Date1', 1)
-    test_weather = h2o.H2OFrame(data_weather, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+    data_weather = pd.read_csv(
+        '~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileWeather_2010.csv')
+    data_weather_nodate = data_weather.drop('Date1', 1)
+    test_weather = h2o.H2OFrame(data_weather_nodate, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
     weather_prediction = model.predict(test_weather)
 
-    # Add YearMonth column to dataframes
-    test_pd_all.groupby(pd.TimeGrouper("M")).sum()
-    trace_weather = go.Scatter()
+    # Plot in plotly
+    pd_weather_prediction = weather_prediction.as_data_frame()
+    trace1 = go.Scatter(x=data_full['Month1'], y=data_full['ACT'])
+    trace2 = go.Scatter(x=data_weather['Month1'], y=pd_weather_prediction['predict'])
+    data = [trace1, trace2]
+    plotly.offline.plot(data)
+
+    # Plot in plotly by month
+    times = pd.DatetimeIndex(data_full.Date1)
+    pd_real_bymonth = data_full.groupby([times.year, times.month]).sum()
+    pd_real_bymonth.reset_index(inplace=True)
+    pd_real_bymonth = pd_real_bymonth.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
+    pd_real_bymonth['Date'] = pd_real_bymonth.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
+
+    times2 = pd.DatetimeIndex(data_weather.Date1)
+    pd_pred_bymonth = data_weather.groupby([times2.year, times2.month]).sum()
+    pd_pred_bymonth.reset_index(inplace=True)
+    pd_pred_bymonth = pd_pred_bymonth.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
+    pd_pred_bymonth['Date'] = pd_pred_bymonth.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
+
+    trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'])
+    trace2 = go.Scatter()
+    data = [trace1]
+    plotly.offline.plot(data)
