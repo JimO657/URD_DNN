@@ -44,7 +44,9 @@ model_id = 'Python_URD_DNN_2006-2014'
 #model = H2ODeepLearningEstimator(model_id=model_id, epochs=50, hidden=[800,800], activation="Tanh",
 #                                 l1=0, l2=0, score_training_samples=5, score_validation_samples=5)
 
-model = H2ODeepLearningEstimator(model_id=model_id, epochs = 500, hidden = c(800, 800, 800), activation = ('Tanh'), l1 = 0, l2 = 0, stopping_rounds = 0)
+model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800], activation ="Tanh", l1=0, l2=0,stopping_rounds=5,stopping_metric= 'MSE',stopping_tolerance=1e-6)
+
+
 # score_training_samples=5, score_validation_samples=5)
 #epochs = 500, hidden = c(800, 800, 800), activation = ('Tanh'), l1 = 0, l2 = 0, stopping_rounds = 0 )
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
