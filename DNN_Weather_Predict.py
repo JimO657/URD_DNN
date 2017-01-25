@@ -95,12 +95,12 @@ pd_predict['Date'] = pd_predict.apply(lambda row: datetime(int(row['Year']), int
 delta = pd_predict.predict - pd_real_bymonth.ACT
 
 # Plot with plotly
-trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'])
-trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'])
-trace3 = go.Bar(x=pd_real_bymonth['Date'], y=delta)
+trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'], name='Real')
+trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'], name='Predicted')
+trace3 = go.Bar(x=pd_real_bymonth['Date'], y=delta, name='Delta')
 data = [trace1, trace2, trace3]
 layout = dict(title='URD Prediction vs. Actual',
-              xaxis=dict(title='Date'),
+              xaxis=dict(title='Date', rangeslider=dict(), type='date'),
               yaxis=dict(title='ACT'),
               )
 fig = dict(data=data, layout=layout)
