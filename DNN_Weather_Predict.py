@@ -17,7 +17,7 @@ h2o.remove_all()
 
 # Import data to pandas dataframe
 data_full = pd.read_csv(
-    '~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
+            os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv'))
 
 # Set start and end dates for training
 date_start = '2006-Jan-01'
@@ -49,7 +49,7 @@ model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # Save DNN model
-save_path = '~/0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/'
+save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
 try:
     h2o.save_model(model, path=save_path)
 except exceptions.H2OServerError:
@@ -60,9 +60,12 @@ except exceptions.H2OServerError:
 original_prediction = model.predict(test)
 
 # Import weather data to pandas dataframe
-data_weather = pd.read_csv('~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileWeather_2010.csv')
+data_weather = pd.read_csv(
+               os.path.join(
+               os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileWeather_2010.csv'))
 data_weather_nodate = data_weather.drop('Date1', 1)
-test_weather = h2o.H2OFrame(data_weather_nodate, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+test_weather = h2o.H2OFrame(data_weather_nodate,
+                            column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 weather_prediction = model.predict(test_weather)
 
 # Add Year+Month column to full data
@@ -88,8 +91,17 @@ pd_predict.reset_index(inplace=True)
 pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
 pd_predict['Date'] = pd_predict.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
 
+# Create dataframe for error between prediction and real data
+error = pd_predict.predict - pd_real_bymonth.ACT
+
 # Plot with plotly
-trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'])
-trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'])
-data = [trace1, trace2]
-plotly.offline.plot(data)
+trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'], name='Real')
+trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'], name='Predicted')
+trace3 = go.Bar(x=pd_real_bymonth['Date'], y=error, name='Error')
+data = [trace1, trace2, trace3]
+layout = dict(title='URD Prediction vs. Actual',
+              xaxis=dict(title='Date', rangeslider=dict(), type='date'),
+              yaxis=dict(title='ACT'),
+              )
+fig = dict(data=data, layout=layout)
+plotly.offline.plot(fig)
