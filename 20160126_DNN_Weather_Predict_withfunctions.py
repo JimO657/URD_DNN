@@ -208,7 +208,7 @@ if __name__ == "__main__":
         x=d_predictions['2016']['Yearly']['Date'],
         y=d_predictions['2016']['Yearly']['ACT'],
         name='Yearly Actual',
-        legendgroup='Yearly'
+        legendgroup='Yearly',
     )
     trace_monthly = go.Scatter(
         x=d_predictions['2016']['Monthly']['Date'],
@@ -246,11 +246,12 @@ if __name__ == "__main__":
     # Create layout for plotly
     layout = go.Layout(
         title='URD Prediction vs. Actual',
-        xaxis=dict(title='Date', rangeslider=dict(), type='date'),
-        yaxis=dict(title=''),
+        xaxis=dict(title='', rangeslider=dict(thickness=0.1), type='date', showgrid=True),
+        yaxis=dict(title='', showgrid=True),
         updatemenus=list([
             dict(
-                buttons=[vis_dict for vis_dict in l_vis_dicts]
+                buttons=[vis_dict for vis_dict in l_vis_dicts],
+                type='buttons'
             )]))
 
     # Plot with plotly
