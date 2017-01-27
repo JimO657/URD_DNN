@@ -100,16 +100,19 @@ def aggregate_by_day_month_year(dataframe):
     times = pd.DatetimeIndex(dataframe.Date1)
 
     # Create daily aggregate
-    pd_daily = dataframe.rename(columns={'Date1': 'Date'})
+    pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
+    pd_daily.reset_index(inplace=True)  # Turns multi index into columns
+    pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
+    pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
 
     # Create monthly aggregate
-    pd_monthly = pd_daily.groupby([times.year, times.month]).sum() # Aggregate by month
+    pd_monthly = dataframe.groupby([times.year, times.month]).sum() # Aggregate by month
     pd_monthly.reset_index(inplace=True)  # Turns multi index into columns
     pd_monthly = pd_monthly.rename(columns={'level_0': 'Year', 'level_1': 'Month'})  # Rename index columns
     pd_monthly['Date'] = pd_monthly.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
 
     # Create yearly aggregate
-    pd_yearly = pd_daily.groupby([times.year]).sum()
+    pd_yearly = dataframe.groupby([times.year]).sum()
     pd_yearly.reset_index(inplace=True)
     pd_yearly = pd_yearly.rename(columns={'index': 'Date'})
 
