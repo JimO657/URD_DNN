@@ -6,6 +6,7 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
+from tqdm import tqdm
 
 
 def create_h2o_urd_model(urd_data):
@@ -99,18 +100,26 @@ def aggregate_by_day_month_year(dataframe):
     times = pd.DatetimeIndex(dataframe.Date1)
 
     # Create daily aggregate
-    pd_daily = data_full.rename(columns={'Date1': 'Date'})
+    pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
+    pd_daily.reset_index(inplace=True)  # Turns multi index into columns
+    pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
+    pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
 
     # Create monthly aggregate
-    pd_monthly = pd_daily.groupby([times.year, times.month]).sum() # Aggregate by month
+    pd_monthly = dataframe.groupby([times.year, times.month]).sum() # Aggregate by month
     pd_monthly.reset_index(inplace=True)  # Turns multi index into columns
     pd_monthly = pd_monthly.rename(columns={'level_0': 'Year', 'level_1': 'Month'})  # Rename index columns
     pd_monthly['Date'] = pd_monthly.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
 
     # Create yearly aggregate
-    pd_yearly = pd_daily.groupby([times.year]).sum()
+    pd_yearly = dataframe.groupby([times.year]).sum()
     pd_yearly.reset_index(inplace=True)
     pd_yearly = pd_yearly.rename(columns={'index': 'Date'})
+
+    # Create error columns
+    pd_daily['Error'] = pd_daily['Prediction'] - pd_daily['ACT']
+    pd_monthly['Error'] = pd_monthly['Prediction'] - pd_monthly['ACT']
+    pd_yearly['Error'] = pd_yearly['Prediction'] - pd_yearly['ACT']
 
     return {'Daily': pd_daily, 'Monthly': pd_monthly, 'Yearly': pd_yearly}
 
@@ -129,7 +138,8 @@ if __name__ == "__main__":
 
     # Define list of pandas DataFrames for model to predict on
     base_data_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015')
-    l_csv_test_data = ['ExportFileWeather_2010.csv']
+    l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
+                       'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
     l_pd_test_data = [data_full]
     for csv_test_data in l_csv_test_data:
         l_pd_test_data.append(pd.read_csv(os.path.join(base_data_path, csv_test_data)))
@@ -141,16 +151,109 @@ if __name__ == "__main__":
     for i in range(len(l_predictions_raw)):
         l_pd_test_data[i]['Prediction'] = l_predictions_raw[i]['predict']
 
+    # Aggregate full data into yearly, monthly, and daily results with errors
+    l_predictions = []
+    for pd_test_data in tqdm(l_pd_test_data):
+        l_predictions.append(aggregate_by_day_month_year(pd_test_data))
+
     # Create list of strings indicating year of test data being used
     l_test_year = ['2016']
     for filename in l_csv_test_data:
         l_test_year.append(filename[-8:-4])
 
-    # Aggregate full data into yearly, monthly, and daily results
-    d_predictions = []
-    for pd_test_data in l_pd_test_data:
-        d_predictions.append(aggregate_by_day_month_year(pd_test_data))
-
-    # Get prediction errors
-
     # Zip weather data year with predictions and errors
+    d_predictions = {}
+    for i in range(len(l_test_year)):
+        d_predictions[l_test_year[i]] = l_predictions[i]
+
+    # Create traces for predictions
+    d_traces = {}
+    for weather_year in d_predictions:
+        for time_frame in d_predictions[weather_year]:
+            try:
+                d_traces[weather_year][time_frame] = {}
+                d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
+                    x=d_predictions[weather_year][time_frame]['Date'],
+                    y=d_predictions[weather_year][time_frame]['Prediction'],
+                    name=time_frame + ' Prediction ' + weather_year,
+                    line=dict(dash='dash'),
+                    legendgroup=time_frame
+                )
+                d_traces[weather_year][time_frame]['Error'] = go.Bar(
+                    x=d_predictions[weather_year][time_frame]['Date'],
+                    y=d_predictions[weather_year][time_frame]['Error'],
+                    name=time_frame + ' Error ' + weather_year,
+                    legendgroup=time_frame
+                )
+
+            except KeyError:
+                d_traces[weather_year] = {}
+                d_traces[weather_year][time_frame] = {}
+                d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
+                    x=d_predictions[weather_year][time_frame]['Date'],
+                    y=d_predictions[weather_year][time_frame]['Prediction'],
+                    name=time_frame + ' Prediction ' + weather_year,
+                    line=dict(dash='dash'),
+                    legendgroup=time_frame
+                )
+                d_traces[weather_year][time_frame]['Error'] = go.Bar(
+                    x=d_predictions[weather_year][time_frame]['Date'],
+                    y=d_predictions[weather_year][time_frame]['Error'],
+                    name=time_frame + ' Error ' + weather_year,
+                    legendgroup=time_frame
+                )
+
+    # Create traces for actual data
+    trace_yearly = go.Scatter(
+        x=d_predictions['2016']['Yearly']['Date'],
+        y=d_predictions['2016']['Yearly']['ACT'],
+        name='Yearly Actual',
+        legendgroup='Yearly',
+    )
+    trace_monthly = go.Scatter(
+        x=d_predictions['2016']['Monthly']['Date'],
+        y=d_predictions['2016']['Monthly']['ACT'],
+        name='Monthly Actual',
+        legendgroup='Monthly',
+    )
+    trace_daily = go.Scatter(
+        x=d_predictions['2016']['Daily']['Date'],
+        y=d_predictions['2016']['Daily']['ACT'],
+        name='Daily Actual',
+        legendgroup='Daily',
+    )
+
+    # Create data and visibility dictionaries
+    l_vis_dicts = []
+    for test_year in l_test_year:
+        visibility = [True, True, True]
+        l_data = [trace_yearly, trace_monthly, trace_daily]
+        for weather_year in d_traces:
+            for time_frame in d_traces[weather_year]:
+                for data_type in d_traces[weather_year][time_frame]:
+                    l_data.append(d_traces[weather_year][time_frame][data_type])
+                    if weather_year == test_year:
+                        visibility.append(True)
+                    else:
+                        visibility.append(False)
+        l_vis_dicts.append({'args': ['visible', visibility],
+                            'label': test_year,
+                            'method': 'restyle'
+                            })
+
+        data = go.Data(l_data)
+
+    # Create layout for plotly
+    layout = go.Layout(
+        title='URD Prediction vs. Actual',
+        xaxis=dict(title='', rangeslider=dict(thickness=0.1), type='date', showgrid=True),
+        yaxis=dict(title='', showgrid=True),
+        updatemenus=list([
+            dict(
+                buttons=[vis_dict for vis_dict in l_vis_dicts],
+                type='buttons'
+            )]))
+
+    # Plot with plotly
+    fig = go.Figure(data=data, layout=layout)
+    plotly.offline.plot(fig)
