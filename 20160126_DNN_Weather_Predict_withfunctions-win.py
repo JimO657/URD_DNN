@@ -50,7 +50,7 @@ def create_h2o_urd_model(urd_data):
     urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
 
     # Save DNN model
-    save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
+    save_path = 'C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
     try:
         h2o.save_model(urd_model, path=save_path)
     except exceptions.H2OServerError:  # Raised if file already exists
@@ -130,14 +130,14 @@ if __name__ == "__main__":
     home_path = os.environ.get("HOME")
 
     # Import URD data
-    urd_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
+    urd_path = 'C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
     data_full = pd.read_csv(urd_path)
 
     # Create H2O model
     model = create_h2o_urd_model(data_full)
 
     # Define list of pandas DataFrames for model to predict on
-    base_data_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015'
+    base_data_path = 'C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015'
     l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
                        'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
     l_pd_test_data = [data_full]
