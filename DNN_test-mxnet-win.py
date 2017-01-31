@@ -7,8 +7,7 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
-import tqdm
-
+from tqdm import tqdm
 #test mxnet
 import mxnet as mx;
 #a = mx.nd.ones((2, 3));
@@ -153,16 +152,16 @@ def aggregate_by_day_month_year(dataframe):
     times = pd.DatetimeIndex(dataframe.Date1)
 
     # Create daily aggregate
-    pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
-    pd_daily.reset_index(inplace=True)  # Turns multi index into columns
-    pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
-    pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
-
-    # Create monthly aggregate
-    pd_monthly = dataframe.groupby([times.year, times.month]).sum() # Aggregate by month
-    pd_monthly.reset_index(inplace=True)  # Turns multi index into columns
-    pd_monthly = pd_monthly.rename(columns={'level_0': 'Year', 'level_1': 'Month'})  # Rename index columns
-    pd_monthly['Date'] = pd_monthly.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
+    # pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
+    # pd_daily.reset_index(inplace=True)  # Turns multi index into columns
+    # pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
+    # pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
+    #
+    # # Create monthly aggregate
+    # pd_monthly = dataframe.groupby([times.year, times.month]).sum() # Aggregate by month
+    # pd_monthly.reset_index(inplace=True)  # Turns multi index into columns
+    # pd_monthly = pd_monthly.rename(columns={'level_0': 'Year', 'level_1': 'Month'})  # Rename index columns
+    # pd_monthly['Date'] = pd_monthly.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
 
     # Create yearly aggregate
     pd_yearly = dataframe.groupby([times.year]).sum()
@@ -170,11 +169,11 @@ def aggregate_by_day_month_year(dataframe):
     pd_yearly = pd_yearly.rename(columns={'index': 'Date'})
 
     # Create error columns
-    pd_daily['Error'] = pd_daily['Prediction'] - pd_daily['ACT']
-    pd_monthly['Error'] = pd_monthly['Prediction'] - pd_monthly['ACT']
+    # pd_daily['Error'] = pd_daily['Prediction'] - pd_daily['ACT']
+    # pd_monthly['Error'] = pd_monthly['Prediction'] - pd_monthly['ACT']
     pd_yearly['Error'] = pd_yearly['Prediction'] - pd_yearly['ACT']
 
-    return {'Daily': pd_daily, 'Monthly': pd_monthly, 'Yearly': pd_yearly}
+    return { 'Yearly': pd_yearly}
 
 
 # Save DNN model
@@ -206,8 +205,11 @@ weather_prediction = model.predict(test_weather)
 
 # Define list of pandas DataFrames for model to predict on
 base_data_path = 'C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015'
-l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
-                   'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+# l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
+#                    'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+
+l_csv_test_data = ['ExportFileWeather_2010.csv']
+
 l_pd_test_data = [data_full]
 for csv_test_data in l_csv_test_data:
     l_pd_test_data.append(pd.read_csv(os.path.join(base_data_path, csv_test_data)))
@@ -225,7 +227,7 @@ for pd_test_data in tqdm(l_pd_test_data):
     l_predictions.append(aggregate_by_day_month_year(pd_test_data))
 
 # Create list of strings indicating year of test data being used
-l_test_year = ['2016']
+l_test_year = []# ['2016']
 for filename in l_csv_test_data:
     l_test_year.append(filename[-8:-4])
 
@@ -272,30 +274,30 @@ for weather_year in d_predictions:
             )
 
 # Create traces for actual data
-trace_yearly = go.Scatter(
-    x=d_predictions['2016']['Yearly']['Date'],
-    y=d_predictions['2016']['Yearly']['ACT'],
-    name='Yearly Actual',
-    legendgroup='Yearly',
-)
-trace_monthly = go.Scatter(
-    x=d_predictions['2016']['Monthly']['Date'],
-    y=d_predictions['2016']['Monthly']['ACT'],
-    name='Monthly Actual',
-    legendgroup='Monthly',
-)
-trace_daily = go.Scatter(
-    x=d_predictions['2016']['Daily']['Date'],
-    y=d_predictions['2016']['Daily']['ACT'],
-    name='Daily Actual',
-    legendgroup='Daily',
-)
+# trace_yearly = go.Scatter(
+#     x=d_predictions['2016']['Yearly']['Date'],
+#     y=d_predictions['2016']['Yearly']['ACT'],
+#     name='Yearly Actual',
+#     legendgroup='Yearly',
+# )
+# trace_monthly = go.Scatter(
+#     x=d_predictions['2016']['Monthly']['Date'],
+#     y=d_predictions['2016']['Monthly']['ACT'],
+#     name='Monthly Actual',
+#     legendgroup='Monthly',
+# )
+# trace_daily = go.Scatter(
+#     x=d_predictions['2016']['Daily']['Date'],
+#     y=d_predictions['2016']['Daily']['ACT'],
+#     name='Daily Actual',
+#     legendgroup='Daily',
+# )
 
 # Create data and visibility dictionaries
 l_vis_dicts = []
 for test_year in l_test_year:
     visibility = [True, True, True]
-    l_data = [trace_yearly, trace_monthly, trace_daily]
+    l_data = [trace_yearly]
     for weather_year in d_traces:
         for time_frame in d_traces[weather_year]:
             for data_type in d_traces[weather_year][time_frame]:
