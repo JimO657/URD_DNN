@@ -183,7 +183,8 @@ if __name__ == "__main__":
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Error'],
                     name=time_frame + ' Error ' + weather_year,
-                    legendgroup=time_frame
+                    legendgroup=time_frame,
+                    yaxis='y2'
                 )
 
             except KeyError:
@@ -200,7 +201,8 @@ if __name__ == "__main__":
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Error'],
                     name=time_frame + ' Error ' + weather_year,
-                    legendgroup=time_frame
+                    legendgroup=time_frame,
+                    yaxis='y2'
                 )
 
     # Create traces for actual data
@@ -247,7 +249,8 @@ if __name__ == "__main__":
     layout = go.Layout(
         title='URD Prediction vs. Actual',
         xaxis=dict(title='', rangeslider=dict(thickness=0.1), type='date', showgrid=True),
-        yaxis=dict(title='', showgrid=True),
+        yaxis=dict(title='', showgrid=True, domain=[0.35, 1]),
+        yaxis2=dict(domain=[0, 0.25]),
         updatemenus=list([
             dict(
                 buttons=[vis_dict for vis_dict in l_vis_dicts],
