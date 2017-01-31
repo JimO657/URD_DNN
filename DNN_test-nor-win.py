@@ -20,10 +20,10 @@ h2o.init(nthreads=3, max_mem_size='10G')
 #h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
-#h2o.remove_all()
+h2o.remove_all()
 
 # Import data to pandas dataframe
-infpath='C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
+infpath='C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
 
 data_full = pd.read_csv(infpath)
 
@@ -57,7 +57,7 @@ model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # Save DNN model
-save_path = "C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\"
+save_path = "C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\"
 try:
     h2o.save_model(model, path=save_path)
 except exceptions.H2OServerError:
@@ -68,7 +68,7 @@ except exceptions.H2OServerError:
 original_prediction = model.predict(test)
 
 # Import weather data to pandas dataframe
-data_weather = pd.read_csv('C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileWeather_2010.csv')
+data_weather = pd.read_csv('C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileWeather_2010.csv')
 data_weather_nodate = data_weather.drop('Date1', 1)
 
 
