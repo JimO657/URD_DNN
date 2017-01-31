@@ -36,7 +36,8 @@ def create_h2o_urd_model(urd_data):
     urd_data_pd_train = urd_data[start_row:end_row + 1].copy()
     urd_data_pd_train_nodate = urd_data_pd_train.drop('Date1', axis=1, inplace=False)
     train = h2o.H2OFrame(urd_data_pd_train_nodate,
-                         column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+                         column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],
+                         destination_frame='Training_Validation_Frame')
     training, validation = train.split_frame(ratios=[0.8])
 
     # Define predictors and response
@@ -60,12 +61,13 @@ def create_h2o_urd_model(urd_data):
     return urd_model
 
 
-def get_predictions(urd_model, l_test_data):
+def get_predictions(urd_model, l_test_data, l_test_names):
     """Creates predictions on test data using H2O model
 
     Args:
         urd_model (H2ODeepLearningEstimator): H2O model for prediction.
         l_test_data (list): list of pandas DataFrames to predict on.
+        l_test_names (list): list of csv files corresponding to the DataFrames
 
     Returns:
         list: List of pandas DataFrames containing predictions.
@@ -76,10 +78,12 @@ def get_predictions(urd_model, l_test_data):
     predictions = []
 
     # Convert test data to H2OFrames and run predictions
-    for test_data in l_test_data:
+    for i in range(len(l_test_data)):
+        test_data = l_test_data[i]
         test_data_no_date = test_data.drop('Date1', axis=1, inplace=False)
         h2o_test = h2o.H2OFrame(test_data_no_date,
-                                column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+                                column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],
+                                destination_frame=l_test_names[i] + "_Prediction")
         predictions.append(urd_model.predict(h2o_test).as_data_frame())
 
     return predictions
@@ -127,7 +131,7 @@ def aggregate_by_day_month_year(dataframe):
 if __name__ == "__main__":
 
     # Define home directory
-    home_path = os.environ.get("HOME")
+    home_path = os.path.expanduser("~")
 
     # Import URD data
     urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
@@ -145,7 +149,7 @@ if __name__ == "__main__":
         l_pd_test_data.append(pd.read_csv(os.path.join(base_data_path, csv_test_data)))
 
     # Get model predictions on test data
-    l_predictions_raw = get_predictions(model, l_pd_test_data)
+    l_predictions_raw = get_predictions(model, l_pd_test_data, ['ExportFileR.csv'] + l_csv_test_data)
 
     # Add prediction column to existing pandas DataFrames
     for i in range(len(l_predictions_raw)):
@@ -157,7 +161,7 @@ if __name__ == "__main__":
         l_predictions.append(aggregate_by_day_month_year(pd_test_data))
 
     # Create list of strings indicating year of test data being used
-    l_test_year = ['2016']
+    l_test_year = ['Actual']
     for filename in l_csv_test_data:
         l_test_year.append(filename[-8:-4])
 
@@ -175,14 +179,14 @@ if __name__ == "__main__":
                 d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Prediction'],
-                    name=time_frame + ' Prediction ' + weather_year,
+                    name="{0} Prediction ({1} Weather)".format(time_frame, weather_year),
                     line=dict(dash='dash'),
                     legendgroup=time_frame
                 )
                 d_traces[weather_year][time_frame]['Error'] = go.Bar(
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Error'],
-                    name=time_frame + ' Error ' + weather_year,
+                    name="{0} Error ({1} Weather)".format(time_frame, weather_year),
                     legendgroup=time_frame,
                     yaxis='y2'
                 )
@@ -193,34 +197,34 @@ if __name__ == "__main__":
                 d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Prediction'],
-                    name=time_frame + ' Prediction ' + weather_year,
+                    name="{0} Prediction ({1} Weather)".format(time_frame, weather_year),
                     line=dict(dash='dash'),
                     legendgroup=time_frame
                 )
                 d_traces[weather_year][time_frame]['Error'] = go.Bar(
                     x=d_predictions[weather_year][time_frame]['Date'],
                     y=d_predictions[weather_year][time_frame]['Error'],
-                    name=time_frame + ' Error ' + weather_year,
+                    name="{0} Error ({1} Weather)".format(time_frame, weather_year),
                     legendgroup=time_frame,
                     yaxis='y2'
                 )
 
     # Create traces for actual data
     trace_yearly = go.Scatter(
-        x=d_predictions['2016']['Yearly']['Date'],
-        y=d_predictions['2016']['Yearly']['ACT'],
+        x=d_predictions['Actual']['Yearly']['Date'],
+        y=d_predictions['Actual']['Yearly']['ACT'],
         name='Yearly Actual',
         legendgroup='Yearly',
     )
     trace_monthly = go.Scatter(
-        x=d_predictions['2016']['Monthly']['Date'],
-        y=d_predictions['2016']['Monthly']['ACT'],
+        x=d_predictions['Actual']['Monthly']['Date'],
+        y=d_predictions['Actual']['Monthly']['ACT'],
         name='Monthly Actual',
         legendgroup='Monthly',
     )
     trace_daily = go.Scatter(
-        x=d_predictions['2016']['Daily']['Date'],
-        y=d_predictions['2016']['Daily']['ACT'],
+        x=d_predictions['Actual']['Daily']['Date'],
+        y=d_predictions['Actual']['Daily']['ACT'],
         name='Daily Actual',
         legendgroup='Daily',
     )
@@ -248,7 +252,7 @@ if __name__ == "__main__":
     # Create layout for plotly
     layout = go.Layout(
         title='URD Prediction vs. Actual',
-        xaxis=dict(title='', rangeslider=dict(thickness=0.1), type='date', showgrid=True),
+        xaxis=dict(title='', rangeslider=dict(thickness=0.015, borderwidth=1), type='date', showgrid=True),
         yaxis=dict(title='', showgrid=True, domain=[0.35, 1]),
         yaxis2=dict(domain=[0, 0.25]),
         updatemenus=list([
