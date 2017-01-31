@@ -57,7 +57,7 @@ model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # Save DNN model
-save_path = "C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\"
+save_path = "C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models_2015\\"
 try:
     h2o.save_model(model, path=save_path)
 except exceptions.H2OServerError:
@@ -92,7 +92,7 @@ pd_pred_bymonth['Date'] = pd_pred_bymonth.apply(lambda row: datetime(int(row['Ye
 # Add Year+Month column to prediction
 pd_weather_prediction = weather_prediction.as_data_frame()
 
-times3 = pd.DatetimeIndex(data_full.Date1)
+times3 = pd.DatetimeIndex(data_weather.Date1)
 pd_predict = pd_weather_prediction.groupby([times3.year, times3.month]).sum()
 pd_predict.reset_index(inplace=True)
 pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
