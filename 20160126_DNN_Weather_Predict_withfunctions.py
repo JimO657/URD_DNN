@@ -24,39 +24,56 @@ def create_h2o_urd_model(urd_data):
     h2o.init(strict_version_check=False)
     h2o.remove_all()
 
-    # Set start and end dates for training
-    date_start = '2006-Jan-01'
-    date_end = '2014-Dec-31'
-
-    # Find row indices of training data
-    start_row = urd_data[urd_data['Date1'] == date_start].index.tolist()[0]
-    end_row = urd_data[urd_data['Date1'] == date_end].index.tolist()[0]
-
-    # Create training data slice and convert to training and validation H2OFrames
-    urd_data_pd_train = urd_data[start_row:end_row + 1].copy()
-    urd_data_pd_train_nodate = urd_data_pd_train.drop('Date1', axis=1, inplace=False)
-    train = h2o.H2OFrame(urd_data_pd_train_nodate,
-                         column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],
-                         destination_frame='Training_Validation_Frame')
-    training, validation = train.split_frame(ratios=[0.8])
-
-    # Define predictors and response
-    predictors = list(train.columns)[2:]
-    response = list(train.columns)[0]
-
-    # Run DNN
+    # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
-    urd_model = H2ODeepLearningEstimator(model_id=urd_model_id, epochs=5000, hidden=[800, 800], activation="Tanh",
-                                     l1=0, l2=0, stopping_rounds=5, stopping_metric='MSE', stopping_tolerance=1e-6)
-    urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
-
-    # Save DNN model
     save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
-    try:
-        h2o.save_model(urd_model, path=save_path)
-    except exceptions.H2OServerError:  # Raised if file already exists
-        os.remove(save_path + urd_model_id)
-        h2o.save_model(urd_model, path=save_path)
+
+    # Check if model exists and prompt for overwrite if exists
+    skip_h2o = None
+    if os.path.isfile(os.path.join(save_path, urd_model_id)):
+        while skip_h2o != "Y" and skip_h2o != "n":
+            skip_h2o = raw_input("H2O model {} already exists. Use existing model?(Y/n): ".format(urd_model_id))
+    else:
+        skip_h2o = 'n'
+
+    if skip_h2o == 'Y':
+
+        # Load model
+        urd_model = h2o.load_model(os.path.join(save_path, urd_model_id))
+
+    elif skip_h2o == 'n':
+
+        # Set start and end dates for training
+        date_start = '2006-Jan-01'
+        date_end = '2014-Dec-31'
+
+        # Find row indices of training data
+        start_row = urd_data[urd_data['Date1'] == date_start].index.tolist()[0]
+        end_row = urd_data[urd_data['Date1'] == date_end].index.tolist()[0]
+
+        # Create training data slice and convert to training and validation H2OFrames
+        urd_data_pd_train = urd_data[start_row:end_row + 1].copy()
+        urd_data_pd_train_nodate = urd_data_pd_train.drop('Date1', axis=1, inplace=False)
+        train = h2o.H2OFrame(urd_data_pd_train_nodate,
+                             column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],
+                             destination_frame='Training_Validation_Frame')
+        training, validation = train.split_frame(ratios=[0.8])
+
+        # Define predictors and response
+        predictors = list(train.columns)[2:]
+        response = list(train.columns)[0]
+
+        # Run DNN
+        urd_model = H2ODeepLearningEstimator(model_id=urd_model_id, epochs=5000, hidden=[800, 800], activation="Tanh",
+                                         l1=0, l2=0, stopping_rounds=5, stopping_metric='MSE', stopping_tolerance=1e-6)
+        urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
+
+        # Save DNN model
+        try:
+            h2o.save_model(urd_model, path=save_path)
+        except exceptions.H2OServerError:  # Raised if file already exists
+            os.remove(save_path + urd_model_id)
+            h2o.save_model(urd_model, path=save_path)
 
     return urd_model
 
