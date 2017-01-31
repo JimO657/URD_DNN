@@ -81,11 +81,14 @@ pd_pred_bymonth['Date'] = pd_pred_bymonth.apply(lambda row: datetime(int(row['Ye
 # Add Year+Month column to prediction
 pd_weather_prediction = weather_prediction.as_data_frame()
 
-times3 = pd.DatetimeIndex(data_full.Date1)
+times3 = pd.DatetimeIndex(data_weather.Date1)
 pd_predict = pd_weather_prediction.groupby([times3.year, times3.month]).sum()
 pd_predict.reset_index(inplace=True)
 pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
 pd_predict['Date'] = pd_predict.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
+
+# Create dataframe for difference between prediction and actual
+pd_diff = pd_real_bymonth.subtract(pd_predict, )
 
 # Plot with plotly
 trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'])

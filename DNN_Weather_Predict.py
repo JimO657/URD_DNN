@@ -85,7 +85,7 @@ pd_pred_bymonth['Date'] = pd_pred_bymonth.apply(lambda row: datetime(int(row['Ye
 # Add Year+Month column to prediction
 pd_weather_prediction = weather_prediction.as_data_frame()
 
-times3 = pd.DatetimeIndex(data_full.Date1)
+times3 = pd.DatetimeIndex(data_weather.Date1)
 pd_predict = pd_weather_prediction.groupby([times3.year, times3.month]).sum()
 pd_predict.reset_index(inplace=True)
 pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
@@ -99,9 +99,12 @@ trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'], name='R
 trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'], name='Predicted')
 trace3 = go.Bar(x=pd_real_bymonth['Date'], y=error, name='Error')
 data = [trace1, trace2, trace3]
+
 layout = dict(title='URD Prediction vs. Actual',
               xaxis=dict(title='Date', rangeslider=dict(), type='date'),
               yaxis=dict(title='ACT'),
               )
+
 fig = dict(data=data, layout=layout)
+
 plotly.offline.plot(fig)
