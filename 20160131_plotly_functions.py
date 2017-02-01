@@ -1,10 +1,9 @@
 import pandas as pd
-import h2o
-import os
 import plotly
 import plotly.graph_objs as go
 from datetime import datetime
 from tqdm import tqdm
+import sys
 
 
 def aggregate_by_day_month_year(dataframe):
@@ -48,37 +47,7 @@ def aggregate_by_day_month_year(dataframe):
     return {'Daily': pd_daily, 'Monthly': pd_monthly, 'Yearly': pd_yearly}
 
 
-def make_scatter_trace(column1, column2, name='', legendgroup=''):
-    """Creates plotly trace from pandas dataframe columns.
-
-    Args:
-        column1 (pandas DataFrame): Single-column DataFrame to use as x-axis.
-        column2 (pandas DataFrame): Single-column DataFrame to use as y-axis.
-        name (str, opt.): Name of scatter trace.
-        legendgroup (str, opt.): Name of legend group to put trace in.
-
-    Returns:
-        Scatter plot
-
-    """
-
-    # Import libraries
-    import pandas as pd
-    import plotly
-    import plotly.graph_objs as go
-
-    # Create scatter plot
-    scatter_trace = go.Scatter(
-        x=column1,
-        y=column2,
-        name=name,
-        legendgroup=legendgroup,
-    )
-
-    return scatter_trace
-
-
-def visualize_urd(real_data, predictions, filename=''):
+def visualize_urd(real_data, predictions, filename='temp_plot.html'):
     """Creates html file to visualize real data and predictions for URD data using plotly.
 
     Args:
@@ -97,12 +66,14 @@ def visualize_urd(real_data, predictions, filename=''):
 
     # Create nested dictionary of applied weather year to aggregation type to prediction dataframe
     d_predictions = {}
-    for prediction_year in predictions:
+    print("Aggregating data...")
+    sys.stdout.write('.')
+    sys.stdout.flush()
+    for prediction_year in tqdm(predictions):
         d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year])
 
     # Create traces for predictions
     d_traces = {}
-
     for weather_year in sorted(d_predictions):
         for time_frame in d_predictions[weather_year]:
             try:
@@ -180,4 +151,4 @@ def visualize_urd(real_data, predictions, filename=''):
 
     # Plot with plotly
     fig = go.Figure(data=data, layout=layout)
-    plotly.offline.plot(fig)
+    plotly.offline.plot(fig, filename=filename)
