@@ -1,4 +1,4 @@
-
+### This is a neural net model adopted to use mxnet directly instead of H2O  deeplaearning or deepwater
 import pandas as pd
 import h2o
 import os
@@ -8,14 +8,107 @@ import plotly
 import plotly.graph_objs as go
 from datetime import datetime
 from tqdm import tqdm
-
 #test mxnet
-#import mxnet as mx;
+import mxnet as mx
+import graphviz
+
 #a = mx.nd.ones((2, 3));
 #print ((a*2).asnumpy());
 
-#####################################3
 
+# Start h2o
+h2o.init(nthreads=3, max_mem_size='10G')
+#h2o.init(strict_version_check=False)
+
+# Remove all objects from h2o
+h2o.remove_all()
+
+
+# Import data to pandas dataframe
+infpath='C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
+
+data_full = pd.read_csv(infpath)
+
+# Set start and end dates for training
+date_start = '2006-Jan-01'
+date_end = '2014-Dec-31'
+
+# Find row indices of training data
+start_row = data_full[data_full['Date1'] == date_start].index.tolist()[0]
+end_row = data_full[data_full['Date1'] == date_end].index.tolist()[0]
+
+# Create training data slice and convert to H2OFrame
+train_pd = data_full[start_row:end_row+1].copy()
+train_pd.drop('Date1', axis=1, inplace=True)
+train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
+training, validation = train.split_frame(ratios=[0.8], destination_frames = ['train.h2o','valid.h2o'])
+
+# Create test data slice and convert to H2OFrame
+test_pd = data_full[end_row + 1:].copy()
+test_pd.drop('Date1', axis=1, inplace=True)
+test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test.h2o')
+
+# Define predictors and output
+predictors = list(train.columns)[2:]
+output = list(train.columns)[0]
+
+####### Starting Lenet part
+
+def lenet(num_classes):
+    import mxnet as mx
+    #Define the input data
+    data = mx.symbol.Variable('data')
+
+    # A fully connected hidden layer
+    # data: input source
+    # num_hidden: number of neurons in this hidden layer
+
+    fc1 = mx.symbol.FullyConnected(data, num_hidden=num_classes)
+    tanh1 = mx.symbol.Activation(data=fc1, act_type="tanh")
+
+    # second fullc
+
+    fc2 = mx.symbol.FullyConnected(data=tanh1, num_hidden=num_classes)
+    tanh2 = mx.symbol.Activation(data=fc2, act_type="tanh")
+    # third fullc
+    fc3 = mx.symbol.FullyConnected(data=tanh2, num_hidden=num_classes)
+
+    # Use linear regression for the output layer
+
+    lenet= mx.symbol.LinearRegressionOutput(fc3)
+
+    # loss
+    # lenet = mx.symbol.SoftmaxOutput(data=fc2, name='softmax')
+    return lenet;
+
+## end lenet definiton
+#################################################################
+
+num_classes=800
+
+mxnet_model = lenet(num_classes)
+# To import the model inside the DeepWater training engine we need to save the model to a file:
+
+#model_filename="/tmp/symbol_lenet-py.json"
+
+#mxnet_model.save(model_filename)
+
+########################################
+### Training mxnet
+mx.viz.plot_network(mxnet_model) #, shape={'data':(100,200)})
+
+##############################################################
+mx.set.seed(0)
+model = mx.model.FeedForward.create(lro, X=train.x, y=train.y,
+                                        ctx=mx.cpu(),     num.round=50, array.batch.size=20,
+                                        learning.rate=2e-6, momentum=0.9,  eval.metric=mx.metric.rmse)
+
+
+
+
+
+##################33
+# OLD style DNN training
 
 def create_h2o_urd_model(urd_data):
     """Creates an H2O model from URD data
@@ -153,7 +246,9 @@ def aggregate_by_day_month_year(dataframe):
     return { 'Yearly': pd_yearly}
 
 
-##################33
+
+
+
 # Define home directory
 home_path = os.path.expanduser("~")
 
@@ -163,6 +258,9 @@ data_full = pd.read_csv(urd_path)
 
 # Create H2O model
 model = create_h2o_urd_model(data_full)
+
+
+
 
 # Define list of pandas DataFrames for model to predict on
 base_data_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015')
