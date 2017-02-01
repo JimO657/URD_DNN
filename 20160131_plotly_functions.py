@@ -3,7 +3,6 @@ import plotly
 import plotly.graph_objs as go
 from datetime import datetime
 from tqdm import tqdm
-import sys
 
 
 def aggregate_by_day_month_year(dataframe):
@@ -67,8 +66,6 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html'):
     # Create nested dictionary of applied weather year to aggregation type to prediction dataframe
     d_predictions = {}
     print("Aggregating data...")
-    sys.stdout.write('.')
-    sys.stdout.flush()
     for prediction_year in tqdm(predictions):
         d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year])
 
@@ -87,14 +84,16 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html'):
                 y=d_predictions[weather_year][time_frame]['Prediction'],
                 name="{0} Prediction ({1} Weather)".format(time_frame, weather_year),
                 line=dict(dash='dash'),
-                legendgroup=time_frame
+                legendgroup=time_frame,
+                visible=False
             )
             d_traces[weather_year][time_frame]['Error'] = go.Bar(
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Error'],
                 name="{0} Error ({1} Weather)".format(time_frame, weather_year),
                 legendgroup=time_frame,
-                yaxis='y2'
+                yaxis='y2',
+                visible=False
             )
 
     # Create traces for actual data
