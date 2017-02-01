@@ -1,4 +1,4 @@
-
+### This is a neural net model adopted to use mxnet directly instead of H2O  deeplaearning or deepwater
 import pandas as pd
 import h2o
 import os
@@ -9,7 +9,9 @@ import plotly.graph_objs as go
 from datetime import datetime
 from tqdm import tqdm
 #test mxnet
-import mxnet as mx;
+import mxnet as mx
+import graphviz
+
 #a = mx.nd.ones((2, 3));
 #print ((a*2).asnumpy());
 
@@ -93,8 +95,13 @@ mxnet_model = lenet(num_classes)
 
 ########################################
 ### Training mxnet
+mx.viz.plot_network(mxnet_model) #, shape={'data':(100,200)})
 
-
+##############################################################
+mx.set.seed(0)
+model = mx.model.FeedForward.create(lro, X=train.x, y=train.y,
+                                        ctx=mx.cpu(),     num.round=50, array.batch.size=20,
+                                        learning.rate=2e-6, momentum=0.9,  eval.metric=mx.metric.rmse)
 
 
 
