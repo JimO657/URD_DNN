@@ -7,6 +7,7 @@ import plotly
 import plotly.graph_objs as go
 from datetime import datetime
 from tqdm import tqdm
+import platform
 
 
 def create_h2o_urd_model(urd_data):
@@ -26,7 +27,11 @@ def create_h2o_urd_model(urd_data):
 
     # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
-    save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+    save_path = None
+    if platform.system() == 'Linux':
+        save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+    elif platform.system() == 'Windows':
+        save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
 
     # Check if model exists and prompt for overwrite if exists
     skip_h2o = None
@@ -148,7 +153,11 @@ def aggregate_by_day_month_year(dataframe):
 if __name__ == "__main__":
 
     # Define home directory
-    home_path = os.path.expanduser("~")
+    home_path = None
+    if platform.system() == 'Linux':
+        home_path = os.path.expanduser("~")
+    elif platform.system() == 'Windows':
+        home_path = 'C:\\from-linux\\'
 
     # Import URD data
     urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
