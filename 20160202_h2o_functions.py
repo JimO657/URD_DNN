@@ -9,13 +9,13 @@ import sys
 from select import select
 
 
-def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_rounds=5):
+def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_rounds=5):
     """Creates an H2O model from URD data
 
     Args:
         urd_data (pandas DataFrame): URD data as DataFrame.
         epochs (float, optional): Number of epochs to pass to H2O estimator. Defaults to 5000.
-        hidden (list, optional): Layers to pass to H2O estimator. Defaults to [800,800]
+        hidden (list, optional): Layers to pass to H2O estimator. Defaults to [800, 800]
         stopping_rounds (int, optional): Number of stopping rounds to pass to H2O estimator. Defaults to 5.
 
     Returns:
@@ -49,7 +49,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_round
             print(prompt_for_skip),
             rlist, _, _ = select([sys.stdin], [], [], timeout)
             if rlist:
-                skip_h2o = sys.stdin.readline()
+                skip_h2o = sys.stdin.readline()[0:-1]  # Remove newline at end
             else:
                 skip_h2o = ""
                 print("\n")
