@@ -6,6 +6,8 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
 import platform
 import time
+import sys
+from select import select
 
 
 def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_rounds=5):
@@ -24,7 +26,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_round
 
     # Start H2O and remove all objects
     h2o.init(strict_version_check=False)
-    h2o.remove_all()
+    # h2o.remove_all()
 
     # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
@@ -35,20 +37,22 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_round
         save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
 
     # Check if model exists and prompt for overwrite if exists
-    skip_h2o = None
-    if os.path.isfile(os.path.join(save_path, urd_model_id)):
-        while skip_h2o != "Y" and skip_h2o != "n":
-            skip_h2o = raw_input("H2O model {} already exists. Use existing model?(Y/n): ".format(urd_model_id))
+    prompt_for_skip = """H2O model {} already exists. Use existing model? ('n' to build new model, anything
+                         else or wait 5 seconds to continue): """.format(urd_model_id)
+    timeout = 5
+    print(prompt_for_skip),
+    rlist, _, _ = select([sys.stdin], [], [], timeout)
+    if rlist:
+        skip_h2o = sys.stdin.readline()
     else:
-        skip_h2o = 'n'
+        skip_h2o = ""
+        print("\n")
 
-    if skip_h2o == 'Y':
-
+    if skip_h2o != 'n':
         # Load model
         urd_model = h2o.load_model(os.path.join(save_path, urd_model_id))
 
-    elif skip_h2o == 'n':
-
+    else:
         # Set start and end dates for training
         date_start = '2006-Jan-01'
         date_end = '2014-Dec-31'
