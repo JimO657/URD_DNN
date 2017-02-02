@@ -13,7 +13,7 @@ from datetime import datetime
 h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
-h2o.remove_all()
+#h2o.remove_all()
 
 # Import data to pandas dataframe
 data_full = pd.read_csv(
