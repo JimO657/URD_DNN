@@ -8,7 +8,7 @@ import plotly.graph_objs as go
 from datetime import datetime
 
 
-# Start h2o
+##### Start h2o
 #h2o.init(nthreads=71, max_mem_size='30G')
 h2o.init(strict_version_check=False)
 

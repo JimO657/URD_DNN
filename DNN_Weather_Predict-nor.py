@@ -7,7 +7,7 @@ from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 
 
-# Start h2o
+#### Start h2o
 h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
