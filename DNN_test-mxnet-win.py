@@ -17,8 +17,8 @@ import graphviz
 
 
 # Start h2o
-h2o.init(nthreads=3, max_mem_size='10G')
-#h2o.init(strict_version_check=False)
+#h2o.init(nthreads=3, max_mem_size='10G')
+h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
 #h2o.remove_all()
