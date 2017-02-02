@@ -2,9 +2,11 @@ import pandas as pd
 import os
 import platform
 
+# Import from plotly functions .py file in same folder
 plotly_functions = __import__('20160131_plotly_functions')
 visualize_urd = plotly_functions.visualize_urd
 
+# Import from h2o functions .py file in same folder
 h2o_functions = __import__('20160202_h2o_functions')
 create_h2o_urd_model = h2o_functions.create_h2o_urd_model
 get_predictions = h2o_functions.get_predictions
@@ -52,4 +54,4 @@ if __name__ == "__main__":
         d_years_predictions[l_test_year[i]] = l_pd_test_data[i]
 
     # Plot using external .py file function
-    visualize_urd(data_full, d_years_predictions)
+    visualize_urd(data_full, d_years_predictions, aggregations=set(['Yearly', 'Monthly']))
