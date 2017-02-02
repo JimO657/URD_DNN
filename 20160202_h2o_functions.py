@@ -6,7 +6,11 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
 import platform
 import sys
+import os
 from select import select
+import time
+from getpass import getuser
+import re
 
 
 def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_rounds=5):
@@ -27,8 +31,15 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     h2o.init(strict_version_check=False)
     # h2o.remove_all()
 
+    # Get user
+    user = getuser()
+
+    # Get current time
+    current_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time()))
+
     # Define path to model
-    urd_model_id = 'Python_URD_DNN_2006-2014'
+    generic_model_path = 'Python_URD_DNN_2006-2014' + user
+    urd_model_id = 'Python_URD_DNN_2006-2014' + user + current_time
     save_path = None
     if platform.system() == 'Linux':
         save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models_2015/')
@@ -36,12 +47,18 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
 
     # Create skip prompt and variable
-    prompt_for_skip = """H2O model {} already exists. Use existing model? ('n' to build new model, anything
+    prompt_for_skip = """Found H2O model {}. Use existing model? ('n' to build new model, anything
                          else or wait 5 seconds to continue): """.format(urd_model_id)
     skip_h2o = None
 
     # Check if model exists
-    if os.path.exists(os.path.join(save_path, urd_model_id)):
+    existing_model = False
+    for f in os.listdir(save_path):
+        if re.search(generic_model_path, f):
+            existing_model = f
+            urd_model_id = f
+
+    if existing_model:
 
         # Check if model exists and prompt for overwrite if exists with timeout - LINUX ONLY
         if platform.system() == 'Linux':
@@ -96,7 +113,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         try:
             h2o.save_model(urd_model, path=save_path)
         except exceptions.H2OServerError:  # Raised if file already exists
-            os.remove(save_path + urd_model_id)
+            os.remove(os.path.join(save_path, urd_model_id))
             h2o.save_model(urd_model, path=save_path)
 
     return urd_model
