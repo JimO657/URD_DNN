@@ -5,6 +5,7 @@ from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
 import platform
+import time
 
 
 def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_rounds=5):
@@ -12,6 +13,9 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_round
 
     Args:
         urd_data (pandas DataFrame): URD data as DataFrame.
+        epochs (float, optional): Number of epochs to pass to H2O estimator. Defaults to 5000.
+        hidden (list, optional): Layers to pass to H2O estimator. Defaults to [800,800]
+        stopping_rounds (int, optional): Number of stopping rounds to pass to H2O estimator. Defaults to 5.
 
     Returns:
         H2ODeepLearningEstimator: URD model.
