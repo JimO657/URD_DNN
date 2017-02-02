@@ -51,7 +51,7 @@ model.train(x=predictors, y=output, training_frame=training, validation_frame=va
 
 # Save DNN model
 save_path = os.path.join(
-                        "/tmp/Models/"
+                        "/tmp/"
                         # os.environ.get('HOME'),
                         # '/Home/norayr/',
                         # '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models_2015/'
