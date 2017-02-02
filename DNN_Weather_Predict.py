@@ -50,7 +50,12 @@ model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # Save DNN model
-save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+save_path = os.path.join(
+                        "/tmp/Models/"
+                        # os.environ.get('HOME'),
+                        # '/Home/norayr/',
+                        # '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models_2015/'
+                        )
 try:
     h2o.save_model(model, path=save_path)
 except exceptions.H2OServerError:
