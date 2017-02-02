@@ -21,7 +21,7 @@ h2o.init(nthreads=3, max_mem_size='10G')
 #h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
-h2o.remove_all()
+#h2o.remove_all()
 
 
 # Import data to pandas dataframe
@@ -98,10 +98,10 @@ mxnet_model = lenet(num_classes)
 mx.viz.plot_network(mxnet_model) #, shape={'data':(100,200)})
 
 ##############################################################
-mx.set.seed(0)
-model = mx.model.FeedForward.create(lro, X=train.x, y=train.y,
-                                        ctx=mx.cpu(),     num.round=50, array.batch.size=20,
-                                        learning.rate=2e-6, momentum=0.9,  eval.metric=mx.metric.rmse)
+# mx.set.seed(0)
+# model = mx.model.FeedForward.create(lro, X=train.x, y=train.y,
+#                                         ctx=mx.cpu(),     num.round=50, array.batch.size=20,
+#                                         learning.rate=2e-6, momentum=0.9,  eval.metric=mx.metric.rmse)
 
 
 
