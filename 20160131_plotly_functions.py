@@ -46,7 +46,7 @@ def aggregate_by_day_month_year(dataframe):
     return {'Daily': pd_daily, 'Monthly': pd_monthly, 'Yearly': pd_yearly}
 
 
-def visualize_urd(real_data, predictions, filename='temp_plot.html'):
+def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregations=['Yearly']):
     """Creates html file to visualize real data and predictions for URD data using plotly.
 
     Args:
