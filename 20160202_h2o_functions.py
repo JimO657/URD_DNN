@@ -5,7 +5,6 @@ from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
 import platform
-import time
 import sys
 from select import select
 
@@ -36,23 +35,36 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800,800], stopping_round
     elif platform.system() == 'Windows':
         save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
 
-    # Check if model exists and prompt for overwrite if exists
+    # Create skip prompt and variable
     prompt_for_skip = """H2O model {} already exists. Use existing model? ('n' to build new model, anything
                          else or wait 5 seconds to continue): """.format(urd_model_id)
-    timeout = 5
-    print(prompt_for_skip),
-    rlist, _, _ = select([sys.stdin], [], [], timeout)
-    if rlist:
-        skip_h2o = sys.stdin.readline()
-    else:
-        skip_h2o = ""
-        print("\n")
+    skip_h2o = None
 
-    if skip_h2o != 'n':
-        # Load model
+    # Check if model exists
+    if os.path.exists(os.path.join(save_path, urd_model_id)):
+
+        # Check if model exists and prompt for overwrite if exists with timeout - LINUX ONLY
+        if platform.system() == 'Linux':
+            timeout = 5
+            print(prompt_for_skip),
+            rlist, _, _ = select([sys.stdin], [], [], timeout)
+            if rlist:
+                skip_h2o = sys.stdin.readline()
+            else:
+                skip_h2o = ""
+                print("\n")
+
+        # Check if model exists and prompt for overwrite WITHOUT timeout
+        elif platform.system() == 'Windows':
+            skip_h2o = raw_input(prompt_for_skip)
+    else:
+        skip_h2o = 'n'
+
+    # Load or create new model
+    if skip_h2o != 'n':  # Load model
         urd_model = h2o.load_model(os.path.join(save_path, urd_model_id))
 
-    else:
+    else:  # Create new model
         # Set start and end dates for training
         date_start = '2006-Jan-01'
         date_end = '2014-Dec-31'
