@@ -8,7 +8,7 @@ import plotly.graph_objs as go
 from datetime import datetime
 
 
-# Start h2o
+##### Start h2o###
 h2o.init(nthreads=71, max_mem_size='30G')
 
 # Remove all objects from h2o
@@ -32,7 +32,7 @@ train_pd.drop('Date1', axis=1, inplace=True)
 train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 training, validation = train.split_frame(ratios=[0.8])
 
-# Create test data slice and convert to H2OFrame
+# Create test data slice and convert to H2OFrame######
 test_pd = data_full[end_row + 1:].copy()
 test_pd.drop('Date1', axis=1, inplace=True)
 test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])

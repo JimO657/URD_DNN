@@ -8,12 +8,13 @@ import plotly.graph_objs as go
 from datetime import datetime
 
 
+#######################
 # Start h2o
 #h2o.init(nthreads=71, max_mem_size='30G')
 h2o.init(strict_version_check=False)
 
 # Remove all objects from h2o
-h2o.remove_all()
+#h2o.remove_all()
 
 # Import data to pandas dataframe
 data_full = pd.read_csv(
@@ -49,7 +50,12 @@ model = H2ODeepLearningEstimator(model_id=model_id, epochs=5000, hidden=[800,800
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # Save DNN model
-save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+save_path = os.path.join(
+                        "/tmp/"
+                        # os.environ.get('HOME'),
+                        # '/Home/norayr/',
+                        # '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models_2015/'
+                        )
 try:
     h2o.save_model(model, path=save_path)
 except exceptions.H2OServerError:
