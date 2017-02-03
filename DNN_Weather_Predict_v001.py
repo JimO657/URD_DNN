@@ -1,13 +1,12 @@
 import pandas as pd
 import os
 import platform
+import DNN_h2o_functions_v001 as h2o_functions
+import DNN_plotly_functions_v001 as plotly_functions
 
-# Import from plotly functions .py file in same folder
-plotly_functions = __import__('whatever FIX THIS _plotly_functions')
+
 visualize_urd = plotly_functions.visualize_urd
 
-# Import from h2o functions .py file in same folder
-h2o_functions = __import__('whatever FIX THIS _h2o_functions')
 create_h2o_urd_model = h2o_functions.create_h2o_urd_model
 get_predictions = h2o_functions.get_predictions
 
@@ -22,14 +21,14 @@ if __name__ == "__main__":
         home_path = 'C:\\from-linux\\'
 
     # Import URD data
-    urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileR.csv')
+    urd_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/data/ExportFileR.csv')
     data_full = pd.read_csv(urd_path)
 
     # Create H2O model
     model = create_h2o_urd_model(data_full)
 
     # Define list of pandas DataFrames for model to predict on
-    base_data_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data')
+    base_data_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/data')
     l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
                        'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
     l_pd_test_data = [data_full]
