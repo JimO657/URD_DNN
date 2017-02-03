@@ -172,8 +172,12 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
     layout = go.Layout(
         title='URD Prediction vs. Actual',
         xaxis=dict(title='', rangeslider=dict(thickness=0.015, borderwidth=1), type='date', showgrid=True),
-        yaxis=dict(title='', showgrid=True, domain=[0.35, 1]),
-        yaxis2=dict(domain=[0, 0.25]),
+        yaxis=dict(title='', showgrid=True, domain=[0.85, 1]),
+        yaxis2=dict(domain=[0.7, 0.8]),
+        yaxis3=dict(domain=[0.5, 0.65]),
+        yaxis4=dict(domain=[0.35, 0.45]),
+        yaxis5=dict(domain=[0.15, 0.3]),
+        yaxis6=dict(domain=[0, 0.1]),
         updatemenus=list([
             dict(
                 buttons=[vis_dict for vis_dict in l_vis_dicts],
