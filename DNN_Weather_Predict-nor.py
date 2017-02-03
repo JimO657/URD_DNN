@@ -14,7 +14,7 @@ h2o.init(strict_version_check=False)
 h2o.remove_all()
 
 # Import data to pandas dataframe
-data_full = pd.read_csv('~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
+data_full = pd.read_csv('~/0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileR.csv')
 
 # Set start and end dates for training
 date_start = '2006-Jan-01'
@@ -64,7 +64,7 @@ original_prediction = model.predict(test)
 
 # Import weather data to pandas dataframe
 data_weather = pd.read_csv(
-    '~/0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileWeather_2010.csv')
+    '~/0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileWeather_2010.csv')
 data_weather.drop('Date1', axis=1, inplace=True)
 test_weather = h2o.H2OFrame(data_weather, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 weather_prediction = model.predict(test_weather)

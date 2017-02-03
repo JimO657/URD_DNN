@@ -22,14 +22,14 @@ if __name__ == "__main__":
         home_path = 'C:\\from-linux\\'
 
     # Import URD data
-    urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
+    urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileR.csv')
     data_full = pd.read_csv(urd_path)
 
     # Create H2O model
     model = create_h2o_urd_model(data_full)
 
     # Define list of pandas DataFrames for model to predict on
-    base_data_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015')
+    base_data_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data')
     l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
                        'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
     l_pd_test_data = [data_full]

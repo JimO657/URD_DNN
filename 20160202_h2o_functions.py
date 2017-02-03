@@ -43,7 +43,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     urd_model_id = 'Python_URD_DNN_2006-2014' + user + current_time
     save_path = None
     if platform.system() == 'Linux':
-        save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models_2015/')
+        save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
     elif platform.system() == 'Windows':
         save_path = 'C:\\from-linux\\0MyDataBases\\7R\ADHOC_Qlikview-linux\H2O_Models\\'
 
