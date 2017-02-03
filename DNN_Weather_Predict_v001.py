@@ -3,11 +3,11 @@ import os
 import platform
 
 # Import from plotly functions .py file in same folder
-plotly_functions = __import__('20160131_plotly_functions')
+plotly_functions = __import__('whatever FIX THIS _plotly_functions')
 visualize_urd = plotly_functions.visualize_urd
 
 # Import from h2o functions .py file in same folder
-h2o_functions = __import__('20160202_h2o_functions')
+h2o_functions = __import__('whatever FIX THIS _h2o_functions')
 create_h2o_urd_model = h2o_functions.create_h2o_urd_model
 get_predictions = h2o_functions.get_predictions
 
