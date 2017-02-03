@@ -54,4 +54,4 @@ if __name__ == "__main__":
         d_years_predictions[l_test_year[i]] = l_pd_test_data[i]
 
     # Plot using external .py file function
-    visualize_urd(data_full, d_years_predictions, aggregations=set(['Yearly', 'Monthly']))
+    visualize_urd(data_full, d_years_predictions, aggregations=set(['Yearly', 'Monthly', 'Daily']))
