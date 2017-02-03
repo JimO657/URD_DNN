@@ -1,6 +1,5 @@
 import pandas as pd
 import h2o
-import os
 from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
