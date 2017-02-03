@@ -21,7 +21,7 @@ h2o.remove_all()
 
 # Import data to pandas dataframe
 data_full = pd.read_csv(
-            os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileR.csv'))
+            os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/URD_DNN/data/ExportFileR.csv'))
 
 # Set start and end dates for training
 date_start = '2006-Jan-01'
@@ -140,7 +140,7 @@ model = H2ODeepWaterEstimator(model_id=model_id, hidden=[800,800,800], activatio
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
 # # Save DNN model
-# save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+# save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/7R/URD_DNN/H2O_Models/')
 # try:
 #     h2o.save_model(model, path=save_path)
 # except exceptions.H2OServerError:
@@ -153,7 +153,7 @@ model.train(x=predictors, y=output, training_frame=training, validation_frame=va
 # # Import weather data to pandas dataframe
 # data_weather = pd.read_csv(
 #                os.path.join(
-#                os.environ.get('HOME'), '0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileWeather_2010.csv'))
+#                os.environ.get('HOME'), '0MyDataBases/7R/URD_DNN/data/ExportFileWeather_2010.csv'))
 # data_weather_nodate = data_weather.drop('Date1', 1)
 # test_weather = h2o.H2OFrame(data_weather_nodate,
 #                             column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test-weather.h2o')

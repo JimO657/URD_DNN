@@ -127,7 +127,7 @@ def create_h2o_urd_model(urd_data):
 
     # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
-    save_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+    save_path = os.path.join('C:\\', '0MyDataBases/7R/URD_DNN/H2O_Models/')
 
     # Check if model exists and prompt for overwrite if exists
     skip_h2o = None
@@ -253,7 +253,7 @@ def aggregate_by_day_month_year(dataframe):
 home_path = os.path.expanduser("~")
 
 # Import URD data
-urd_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/data/ExportFileR.csv')
+urd_path = os.path.join('C:\\', '0MyDataBases/7R/URD_DNN/data/ExportFileR.csv')
 data_full = pd.read_csv(urd_path)
 
 # Create H2O model
@@ -263,7 +263,7 @@ model = create_h2o_urd_model(data_full)
 
 
 # Define list of pandas DataFrames for model to predict on
-base_data_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/data')
+base_data_path = os.path.join('C:\\', '0MyDataBases/7R/URD_DNN/data')
 l_csv_test_data = ['ExportFileWeather_2010.csv']
 l_pd_test_data = [data_full]
 for csv_test_data in l_csv_test_data:
