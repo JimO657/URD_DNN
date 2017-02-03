@@ -11,6 +11,7 @@ from select import select
 import time
 from getpass import getuser
 import re
+from shutil import copyfile
 
 
 def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_rounds=5):
@@ -78,10 +79,18 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         skip_h2o = 'n'
 
     # Load or create new model
+    temp_model_path = os.path.join('/tmp/', urd_model_id)
+
     if skip_h2o != 'n':  # Load model
-        urd_model = h2o.load_model(os.path.join(save_path, urd_model_id))
+
+        # Copy model to /tmp folder
+        copyfile(os.path.join(save_path, urd_model_id), temp_model_path)
+
+        # Load model
+        urd_model = h2o.load_model(temp_model_path)
 
     else:  # Create new model
+
         # Set start and end dates for training
         date_start = '2006-Jan-01'
         date_end = '2014-Dec-31'
@@ -109,12 +118,18 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         #                                      stopping_rounds=5, stopping_metric='MSE', stopping_tolerance=1e-6)
         urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
 
-        # Save DNN model
+        # Save DNN model to /tmp folder
         try:
-            h2o.save_model(urd_model, path=save_path)
+            h2o.save_model(urd_model, path='/tmp/')
         except exceptions.H2OServerError:  # Raised if file already exists
-            os.remove(os.path.join(save_path, urd_model_id))
-            h2o.save_model(urd_model, path=save_path)
+            os.remove(temp_model_path)
+            h2o.save_model(urd_model, path='/tmp/')
+
+        # Copy to model folder
+        copyfile(temp_model_path, os.path.join(save_path, urd_model_id))
+
+    # Delete model in /tmp folder
+    os.remove(temp_model_path)
 
     return urd_model
 
