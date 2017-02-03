@@ -11,7 +11,7 @@ from tqdm import tqdm
 #test mxnet
 import mxnet as mx
 import graphviz
-
+import platform
 #a = mx.nd.ones((2, 3));
 #print ((a*2).asnumpy());
 
@@ -23,9 +23,16 @@ h2o.init(strict_version_check=False)
 # Remove all objects from h2o
 #h2o.remove_all()
 
+# Define home directory
+home_path = None
+if platform.system() == 'Linux':
+    home_path = os.path.expanduser("~")
+elif platform.system() == 'Windows':
+    home_path = 'C:\\from-linux\\'
 
 # Import data to pandas dataframe
-infpath='C:\\0MyDataBases\\7R\ADHOC_Qlikview-linux\data_2015\ExportFileR.csv'
+
+infpath=os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
 
 data_full = pd.read_csv(infpath)
 
@@ -122,12 +129,14 @@ def create_h2o_urd_model(urd_data):
     """
 
     # Start H2O and remove all objects
-    h2o.init(nthreads=3, max_mem_size='10G')
-    h2o.remove_all()
+#    h2o.init(nthreads=3, max_mem_size='10G')
+    h2o.init(strict_version_check=False) # use this to connect to the cluster
+
+    #    h2o.remove_all()
 
     # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
-    save_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
+    save_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/H2O_Models/')
 
     # Check if model exists and prompt for overwrite if exists
     skip_h2o = None
@@ -253,7 +262,7 @@ def aggregate_by_day_month_year(dataframe):
 home_path = os.path.expanduser("~")
 
 # Import URD data
-urd_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
+urd_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015/ExportFileR.csv')
 data_full = pd.read_csv(urd_path)
 
 # Create H2O model
@@ -263,7 +272,7 @@ model = create_h2o_urd_model(data_full)
 
 
 # Define list of pandas DataFrames for model to predict on
-base_data_path = os.path.join('C:\\', '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015')
+base_data_path = os.path.join(home_path, '0MyDataBases/7R/ADHOC_Qlikview-linux/data_2015')
 l_csv_test_data = ['ExportFileWeather_2010.csv']
 l_pd_test_data = [data_full]
 for csv_test_data in l_csv_test_data:

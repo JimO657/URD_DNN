@@ -32,8 +32,15 @@ end_row = data_full[data_full['Date1'] == date_end].index.tolist()[0]
 
 # Create training data slice and convert to H2OFrame
 train_pd = data_full[start_row:end_row+1].copy()
-train_pd.drop('Date1', axis=1, inplace=True)
-train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'train.h2o')
+train_pd.drop(['Date1','Lightning','Snow','Precipitation'], axis=1, inplace=True)
+
+#train_pd.
+
+
+print 'hi'
+print(train_pd.head())
+
+train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int'],destination_frame = 'train.h2o')
 training, validation = train.split_frame(ratios=[0.8], destination_frames = ['training.h2o','validation.h2o'])
 
 # Create test data slice and convert to H2OFrame
@@ -48,7 +55,12 @@ output = list(train.columns)[0]
 # Run DNN
 model_id = 'Python_URD_DNN_2006-2014'
 #model = H2ODeepLearningEstimator(model_id=model_id, epochs=500, hidden=[800,800,800], activation ="Tanh", l1=0, l2=0,stopping_rounds=0)
-model = H2ODeepWaterEstimator(model_id=model_id, epochs=500, hidden=[80,80], activation ="Tanh",stopping_rounds=0)
+model = H2ODeepLearningEstimator(model_id=model_id, epochs=500, hidden=[80], activation ="tanh",stopping_rounds=0)
+
+print'Hello'
+
+#model = H2ODeepWaterEstimator(model_id=model_id, epochs=500, hidden=[80], activation ="tanh",stopping_rounds=0)
+
 
 model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
 
