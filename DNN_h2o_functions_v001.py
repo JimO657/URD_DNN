@@ -1,6 +1,5 @@
 import pandas as pd
 import h2o
-import os
 from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
@@ -47,19 +46,17 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     elif platform.system() == 'Windows':
         save_path = 'C:\\from-linux\\0MyDataBases\\40Python\URD_DNN\H2O_Models\\'
 
-    # Create skip prompt and variable
-    prompt_for_skip = """Found H2O model {}. Use existing model? ('n' to build new model, anything
-                         else or wait 5 seconds to continue): """.format(urd_model_id)
-    skip_h2o = None
-
     # Check if model exists
     existing_model = False
     for f in os.listdir(save_path):
         if re.search(generic_model_path, f):
             existing_model = f
-            urd_model_id = f
 
+    # If model exists, prompt user
     if existing_model:
+        # Create skip prompt and variable
+        prompt_for_skip = """Found H2O model {}. Use existing model? ('n' to build new model, anything
+                             else or wait 5 seconds to continue): """.format(existing_model)
 
         # Check if model exists and prompt for overwrite if exists with timeout - LINUX ONLY
         if platform.system() == 'Linux':
@@ -75,21 +72,25 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         # Check if model exists and prompt for overwrite WITHOUT timeout
         elif platform.system() == 'Windows':
             skip_h2o = raw_input(prompt_for_skip)
+
     else:
         skip_h2o = 'n'
 
-    # Load or create new model
-    temp_model_path = os.path.join('/tmp/', urd_model_id)
-
     if skip_h2o != 'n':  # Load model
 
+        # Define path to /tmp folder model
+        temp_model_path = os.path.join('/tmp/', existing_model)
+
         # Copy model to /tmp folder
-        copyfile(os.path.join(save_path, urd_model_id), temp_model_path)
+        copyfile(os.path.join(save_path, existing_model), temp_model_path)
 
         # Load model
         urd_model = h2o.load_model(temp_model_path)
 
     else:  # Create new model
+
+        # Define path to /tmp folder model
+        temp_model_path = os.path.join('/tmp/', urd_model_id)
 
         # Set start and end dates for training
         date_start = '2006-Jan-01'
