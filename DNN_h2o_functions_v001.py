@@ -5,12 +5,9 @@ from h2o.estimators.deeplearning import H2ODeepLearningEstimator
 from h2o.estimators import H2ODeepWaterEstimator
 import platform
 import sys
-import os
 from select import select
-import time
 from getpass import getuser
-import re
-from shutil import copyfile
+# import time
 
 
 def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_rounds=5):
@@ -27,33 +24,20 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
     """
 
-    # Start H2O and remove all objects
+    # Start H2O
     h2o.init(strict_version_check=False)
-    # h2o.remove_all()
 
     # Get user
     user = getuser()
 
-    # Get current time
-    current_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time()))
+    # Get current time for timestamp (currently not used)
+    # current_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time()))
 
     # Define path to model
-    generic_model_path = 'Python_URD_DNN_2006-2014' + user + platform.system()
-    urd_model_id = 'Python_URD_DNN_2006-2014' + user + platform.system() #+ current_time
+    urd_model_id = 'Python_URD_DNN_2006-2014' + user + platform.system()
     save_path = 'H2O_Models/'
-    # if platform.system() == 'Linux':
-    #     save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/H2O_Models/')
-    # elif platform.system() == 'Windows':
-    #     save_path = 'C:\\from-linux\\0MyDataBases\\40Python\URD_DNN\H2O_Models\\'
 
-    # Check if model exists
-    # existing_model = False
-    # for f in os.listdir(save_path):
-    #     if re.search(generic_model_path, f):
-    #         existing_model = f
-
-    # Check if model exists
-
+    # Try to load existing model
     try:
         existing_model = h2o.load_model(save_path + urd_model_id)
     except exceptions.H2OResponseError:
@@ -61,6 +45,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
     # If model exists, prompt user
     if existing_model:
+
         # Create skip prompt and variable
         prompt_for_skip = """Found H2O model {}. Use existing model? ('n' to build new model, anything
                              else or wait 5 seconds to continue): """.format(existing_model)
@@ -85,21 +70,9 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
     if skip_h2o != 'n':  # Load model
 
-        # # Define path to /tmp folder model
-        # temp_model_path = os.path.join('/tmp/', existing_model)
-        #
-        # # Copy model to /tmp folder
-        # copyfile(os.path.join(save_path, existing_model), temp_model_path)
-        #
-        # # Load model
-        # urd_model = h2o.load_model(temp_model_path)
-
-        urd_model = existing_model #h2o.load_model(os.path.join(save_path, existing_model))
+        urd_model = existing_model
 
     else:  # Create new model
-
-        # Define path to /tmp folder model
-        # temp_model_path = os.path.join('/tmp/', urd_model_id)
 
         # Set start and end dates for training
         date_start = '2006-Jan-01'
@@ -123,23 +96,13 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
         # Run DNN
         urd_model = H2ODeepLearningEstimator(model_id=urd_model_id, epochs=epochs, hidden=hidden, activation="Tanh",
-                                         l1=0, l2=0, stopping_rounds=stopping_rounds, stopping_metric='MSE', stopping_tolerance=1e-6)
-        # urd_model = H2ODeepWaterEstimator(model_id=urd_model_id, epochs=5000, hidden=[800, 800], activation="Tanh",
-        #                                      stopping_rounds=5, stopping_metric='MSE', stopping_tolerance=1e-6)
+                                             l1=0, l2=0, stopping_rounds=stopping_rounds, stopping_metric='MSE',
+                                             stopping_tolerance=1e-6)
+
         urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
 
         # Save DNN model to /tmp folder
-        # try:
-        h2o.save_model(urd_model, path=save_path)#'/tmp/')
-        # except exceptions.H2OServerError:  # Raised if file already exists
-        #     os.remove(temp_model_path)
-        #     h2o.save_model(urd_model, path='/tmp/')
-
-        # Copy to model folder
-        # copyfile(temp_model_path, os.path.join(save_path, urd_model_id))
-
-    # Delete model in /tmp folder
-    # os.remove(temp_model_path)
+        h2o.save_model(urd_model, path=save_path, force=True)
 
     return urd_model
 
