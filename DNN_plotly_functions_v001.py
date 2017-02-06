@@ -64,7 +64,7 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
         scatter_ratio (float, opt.): Fraction of each aggregate set of subplots dedicated to line subplot. Default 0.75.
 
     Returns:
-        nested dictionary of structure: {Aggregations: {'Prediction' or 'Error': {'Axis':'y#', 'Bounds': [#, #]}}}
+        nested dictionary of structure: {Aggregation: {'Prediction' or 'Error': {'Axis':'#', 'Bounds': [#, #]}}}
 
     """
 
@@ -85,7 +85,7 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
         bound += bar_thickness
         upper_bound = bound
 
-        axis_bounds[agg]['Error']['Axis'] = 'y' + str(counter + 1)
+        axis_bounds[agg]['Error']['Axis'] = str(counter + 1)
         axis_bounds[agg]['Error']['Bounds'] = [lower_bound, upper_bound]
 
         bound += padding
@@ -93,7 +93,7 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
         bound += + scatter_thickness
         upper_bound = bound
 
-        axis_bounds[agg]['Prediction']['Axis'] = 'y' + str(counter + 2)
+        axis_bounds[agg]['Prediction']['Axis'] = str(counter + 2)
         axis_bounds[agg]['Prediction']['Bounds'] = [lower_bound, upper_bound]
 
         bound += padding
@@ -126,7 +126,8 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
     for prediction_year in tqdm(predictions):
         d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year], aggregations)
 
-
+    # Define axes and bounds to be used in plotly based on aggregations
+    d_domains = assign_domains(aggregations)
 
     # Create traces for predictions
     d_traces = {}
@@ -144,16 +145,18 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
                 d_traces[weather_year] = {}
                 d_traces[weather_year][time_frame] = {}
 
-            # Define y-axis variables, dependent on time frame and error
-            if time_frame == 'Yearly':
-                yaxis_prediction = 'y'
-                yaxis_error = 'y2'
-            elif time_frame == 'Monthly':
-                yaxis_prediction = 'y3'
-                yaxis_error = 'y4'
-            elif time_frame == 'Daily':
-                yaxis_prediction = 'y5'
-                yaxis_error = 'y6'
+            # Define y-axis variables
+            yaxis_error = 'y' + d_domains[time_frame]['Error']['Axis']
+            yaxis_prediction = 'y' + d_domains[time_frame]['Prediction']['Axis']
+            # if time_frame == 'Yearly':
+            #     yaxis_prediction = 'y1'
+            #     yaxis_error = 'y2'
+            # elif time_frame == 'Monthly':
+            #     yaxis_prediction = 'y3'
+            #     yaxis_error = 'y4'
+            # elif time_frame == 'Daily':
+            #     yaxis_prediction = 'y5'
+            #     yaxis_error = 'y6'
 
             d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
                 x=d_predictions[weather_year][time_frame]['Date'],
@@ -182,7 +185,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             name='Yearly Actual',
             line=dict(color='#A00'),
             legendgroup='Yearly',
-            yaxis='y',
+            yaxis='y' + d_domains['Yearly']['Prediction']['Axis'],
         )
     if 'Monthly' in aggregations:
         trace_monthly = go.Scatter(
@@ -191,7 +194,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             name='Monthly Actual',
             line=dict(color='#A00'),
             legendgroup='Monthly',
-            yaxis='y3',
+            yaxis='y' + d_domains['Monthly']['Prediction']['Axis'],
         )
     if 'Daily' in aggregations:
         trace_daily = go.Scatter(
@@ -200,7 +203,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             name='Daily Actual',
             line=dict(color='#A00'),
             legendgroup='Daily',
-            yaxis='y5',
+            yaxis='y' + d_domains['Daily']['Prediction']['Axis'],
         )
 
     # Create data and visibility dictionaries
@@ -232,9 +235,11 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
         data = go.Data(l_data)
 
     # Create axes based on aggregations passed
-    d_axis_domains = {'y':[], 'y2':[], 'y3':[], 'y4':[], 'y5':[], 'y6':[]}
-    for aggregation in sorted(aggregations):
-        d_axis_domains['y'] = []
+    d_axis_domains = {'y1':[], 'y2':[], 'y3':[], 'y4':[], 'y5':[], 'y6':[]}
+
+    for agg in d_domains:
+        for data_type in d_domains[agg]:
+            d_axis_domains['yaxis' + d_domains[agg][data_type]['Axis']] = d_domains[agg][data_type]['Bounds']
 
     # Create layout for plotly
     layout = go.Layout(
