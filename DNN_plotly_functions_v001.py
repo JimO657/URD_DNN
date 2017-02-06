@@ -5,12 +5,13 @@ from datetime import datetime
 from tqdm import tqdm
 
 
-def aggregate_by_day_month_year(dataframe, aggregations):
+def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'):
     """Aggregates pandas DataFrames by day, month, and year using indices.
 
     Args:
-        dataframe (pandas DataFrame): DataFrame with 'Date1' column.
-        aggregations (set): set of strings defining which aggregations (Yearly, Monthly, Daily) to use
+        dataframe (pandas DataFrame): DataFrame with column that can be converted to pandas DatetimeIndex.
+        aggregations (set): set of strings defining which aggregations (Yearly, Monthly, Daily) to use.
+        date_column_name (string): Name of dataframe column to be converted to DatetimeIndex.
 
     Returns:
         dictionary: Maps words 'Daily', 'Monthly', and 'Yearly' to aggregated pandas DataFrame.
@@ -21,7 +22,7 @@ def aggregate_by_day_month_year(dataframe, aggregations):
     return_dict = {}
 
     # Create time index
-    times = pd.DatetimeIndex(dataframe.Date1)
+    times = pd.DatetimeIndex(dataframe[date_column_name])
 
     # Create daily aggregate with error column
     if 'Daily' in aggregations:
@@ -102,7 +103,7 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
     return axis_bounds
 
 
-def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregations=set(['Yearly'])):
+def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregations={'Yearly'}):
     """Creates html file to visualize real data and predictions for URD data using plotly.
 
     Args:
@@ -118,13 +119,13 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
     """
 
     # Create dictionary of aggregation type to actual dataframe
-    d_actual = aggregate_by_day_month_year(real_data, aggregations)
+    d_actual = aggregate_by_day_month_year(real_data, aggregations, 'Date1')
 
     # Create nested dictionary of applied weather year to aggregation type to prediction dataframe
     d_predictions = {}
     print("Aggregating data...")
     for prediction_year in tqdm(predictions):
-        d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year], aggregations)
+        d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year], aggregations, 'Date1')
 
     # Define axes and bounds to be used in plotly based on aggregations
     d_domains = assign_domains(aggregations)
@@ -154,7 +155,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Prediction'],
                 name="{0} Prediction ({1} Weather)".format(time_frame, weather_year),
-                line=dict(dash='dash', color='#A00'),
+                line=dict(dash='dash', color='#00A'),
                 legendgroup=time_frame,
                 yaxis=yaxis_prediction,
                 visible=initial_visibility,
@@ -177,7 +178,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Yearly']['Date'],
             y=d_actual['Yearly']['ACT'],
             name='Yearly Actual',
-            line=dict(color='#00A'),
+            line=dict(color='#A00'),
             legendgroup='Yearly',
             yaxis='y' + d_domains['Yearly']['Prediction']['Axis'],
         )
@@ -186,7 +187,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Monthly']['Date'],
             y=d_actual['Monthly']['ACT'],
             name='Monthly Actual',
-            line=dict(color='#00A'),
+            line=dict(color='#A00'),
             legendgroup='Monthly',
             yaxis='y' + d_domains['Monthly']['Prediction']['Axis'],
         )
@@ -195,7 +196,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Daily']['Date'],
             y=d_actual['Daily']['ACT'],
             name='Daily Actual',
-            line=dict(color='#00A'),
+            line=dict(color='#A00'),
             legendgroup='Daily',
             yaxis='y' + d_domains['Daily']['Prediction']['Axis'],
         )
