@@ -42,9 +42,13 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     urd_model_id = 'Python_URD_DNN_2006-2014' + user + current_time
     save_path = None
     if platform.system() == 'Linux':
-        save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/H2O_Models/')
+        save_path = os.path.join('/home', user, '100deepwater-master', 'h2o-3', 'build', 'H2O_Models')
     elif platform.system() == 'Windows':
-        save_path = 'C:\\from-linux\\0MyDataBases\\40Python\URD_DNN\H2O_Models\\'
+        save_path = os.path.join('C:\\', '100deepwater-master', 'h2o-3', 'build', 'H2O_Models')
+    # if platform.system() == 'Linux':
+    #     save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/H2O_Models/')
+    # elif platform.system() == 'Windows':
+    #     save_path = 'C:\\from-linux\\0MyDataBases\\40Python\URD_DNN\H2O_Models\\'
 
     # Check if model exists
     existing_model = False
@@ -78,19 +82,21 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
     if skip_h2o != 'n':  # Load model
 
-        # Define path to /tmp folder model
-        temp_model_path = os.path.join('/tmp/', existing_model)
+        # # Define path to /tmp folder model
+        # temp_model_path = os.path.join('/tmp/', existing_model)
+        #
+        # # Copy model to /tmp folder
+        # copyfile(os.path.join(save_path, existing_model), temp_model_path)
+        #
+        # # Load model
+        # urd_model = h2o.load_model(temp_model_path)
 
-        # Copy model to /tmp folder
-        copyfile(os.path.join(save_path, existing_model), temp_model_path)
-
-        # Load model
-        urd_model = h2o.load_model(temp_model_path)
+        urd_model = h2o.load_model(os.path.join(save_path, existing_model))
 
     else:  # Create new model
 
         # Define path to /tmp folder model
-        temp_model_path = os.path.join('/tmp/', urd_model_id)
+        # temp_model_path = os.path.join('/tmp/', urd_model_id)
 
         # Set start and end dates for training
         date_start = '2006-Jan-01'
@@ -120,17 +126,17 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         urd_model.train(x=predictors, y=response, training_frame=training, validation_frame=validation)
 
         # Save DNN model to /tmp folder
-        try:
-            h2o.save_model(urd_model, path='/tmp/')
-        except exceptions.H2OServerError:  # Raised if file already exists
-            os.remove(temp_model_path)
-            h2o.save_model(urd_model, path='/tmp/')
+        # try:
+        h2o.save_model(urd_model, path=save_path)#'/tmp/')
+        # except exceptions.H2OServerError:  # Raised if file already exists
+        #     os.remove(temp_model_path)
+        #     h2o.save_model(urd_model, path='/tmp/')
 
         # Copy to model folder
-        copyfile(temp_model_path, os.path.join(save_path, urd_model_id))
+        # copyfile(temp_model_path, os.path.join(save_path, urd_model_id))
 
     # Delete model in /tmp folder
-    os.remove(temp_model_path)
+    # os.remove(temp_model_path)
 
     return urd_model
 
