@@ -38,23 +38,26 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     current_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time()))
 
     # Define path to model
-    generic_model_path = 'Python_URD_DNN_2006-2014' + user
-    urd_model_id = 'Python_URD_DNN_2006-2014' + user + current_time
-    save_path = None
-    if platform.system() == 'Linux':
-        save_path = os.path.join('/home', user, '100deepwater-master', 'h2o-3', 'build', 'H2O_Models')
-    elif platform.system() == 'Windows':
-        save_path = os.path.join('C:\\', '100deepwater-master', 'h2o-3', 'build', 'H2O_Models')
+    generic_model_path = 'Python_URD_DNN_2006-2014' + user + platform.system()
+    urd_model_id = 'Python_URD_DNN_2006-2014' + user + platform.system() #+ current_time
+    save_path = 'H2O_Models/'
     # if platform.system() == 'Linux':
     #     save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/H2O_Models/')
     # elif platform.system() == 'Windows':
     #     save_path = 'C:\\from-linux\\0MyDataBases\\40Python\URD_DNN\H2O_Models\\'
 
     # Check if model exists
-    existing_model = False
-    for f in os.listdir(save_path):
-        if re.search(generic_model_path, f):
-            existing_model = f
+    # existing_model = False
+    # for f in os.listdir(save_path):
+    #     if re.search(generic_model_path, f):
+    #         existing_model = f
+
+    # Check if model exists
+
+    try:
+        existing_model = h2o.load_model(save_path + urd_model_id)
+    except exceptions.H2OResponseError:
+        existing_model = False
 
     # If model exists, prompt user
     if existing_model:
@@ -91,7 +94,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         # # Load model
         # urd_model = h2o.load_model(temp_model_path)
 
-        urd_model = h2o.load_model(os.path.join(save_path, existing_model))
+        urd_model = existing_model #h2o.load_model(os.path.join(save_path, existing_model))
 
     else:  # Create new model
 
