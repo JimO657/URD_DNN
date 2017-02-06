@@ -37,4 +37,4 @@ if __name__ == "__main__":
     d_pd_test_data = get_predictions(model, d_pd_test_data)
 
     # Plot using external .py file function
-    visualize_urd(data_full, d_pd_test_data, aggregations={'Yearly', 'Monthly', 'Daily'})
+    visualize_urd(data_full, d_pd_test_data, aggregations={'Yearly'})

@@ -48,7 +48,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
 
         # Create skip prompt and variable
         prompt_for_skip = """Found H2O model {}. Use existing model? ('n' to build new model, anything
-                             else or wait 5 seconds to continue): """.format(existing_model)
+                             else or wait 5 seconds to continue): """.format(urd_model_id)
 
         # Check if model exists and prompt for overwrite if exists with timeout - LINUX ONLY
         if platform.system() == 'Linux':

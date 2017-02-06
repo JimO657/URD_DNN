@@ -29,7 +29,8 @@ def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'
         pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
         pd_daily.reset_index(inplace=True)  # Turns multi index into columns
         pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
-        pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
+        pd_daily['Date'] = pd_daily.apply(lambda row:
+                                          datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
         pd_daily['Error'] = pd_daily['Prediction'] - pd_daily['ACT']
 
         return_dict['Daily'] = pd_daily
