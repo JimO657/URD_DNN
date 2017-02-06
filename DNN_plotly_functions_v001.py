@@ -68,10 +68,10 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
 
     """
 
-    length = len(aggregations)
+    length = 2 * len(aggregations)
     bar_ratio = 1 - scatter_ratio
-    scatter_thickness = (1 - 0.05 * (2 * length - 1)) / length * 2 * scatter_ratio
-    bar_thickness = (1 - 0.05 * (2 * length - 1)) / length * 2 * bar_ratio
+    scatter_thickness = (1 - padding * (length - 1)) / length * 2 * scatter_ratio
+    bar_thickness = (1 - padding * (length - 1)) / length * 2 * bar_ratio
 
     axis_bounds = {}
     counter = 0  # Counter variable for assigning axes
@@ -148,25 +148,19 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             # Define y-axis variables
             yaxis_error = 'y' + d_domains[time_frame]['Error']['Axis']
             yaxis_prediction = 'y' + d_domains[time_frame]['Prediction']['Axis']
-            # if time_frame == 'Yearly':
-            #     yaxis_prediction = 'y1'
-            #     yaxis_error = 'y2'
-            # elif time_frame == 'Monthly':
-            #     yaxis_prediction = 'y3'
-            #     yaxis_error = 'y4'
-            # elif time_frame == 'Daily':
-            #     yaxis_prediction = 'y5'
-            #     yaxis_error = 'y6'
 
+            # Create scatter trace for prediction
             d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Prediction'],
                 name="{0} Prediction ({1} Weather)".format(time_frame, weather_year),
-                line=dict(dash='dash', color='#00A'),
+                line=dict(dash='dash', color='#A00'),
                 legendgroup=time_frame,
                 yaxis=yaxis_prediction,
                 visible=initial_visibility,
             )
+
+            # Create bar trace for error
             d_traces[weather_year][time_frame]['Error'] = go.Bar(
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Error'],
@@ -183,7 +177,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Yearly']['Date'],
             y=d_actual['Yearly']['ACT'],
             name='Yearly Actual',
-            line=dict(color='#A00'),
+            line=dict(color='#00A'),
             legendgroup='Yearly',
             yaxis='y' + d_domains['Yearly']['Prediction']['Axis'],
         )
@@ -192,7 +186,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Monthly']['Date'],
             y=d_actual['Monthly']['ACT'],
             name='Monthly Actual',
-            line=dict(color='#A00'),
+            line=dict(color='#00A'),
             legendgroup='Monthly',
             yaxis='y' + d_domains['Monthly']['Prediction']['Axis'],
         )
@@ -201,7 +195,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             x=d_actual['Daily']['Date'],
             y=d_actual['Daily']['ACT'],
             name='Daily Actual',
-            line=dict(color='#A00'),
+            line=dict(color='#00A'),
             legendgroup='Daily',
             yaxis='y' + d_domains['Daily']['Prediction']['Axis'],
         )
@@ -235,28 +229,25 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
         data = go.Data(l_data)
 
     # Create axes based on aggregations passed
-    d_axis_domains = {'y1':[], 'y2':[], 'y3':[], 'y4':[], 'y5':[], 'y6':[]}
+    d_axis_domains = {}
 
     for agg in d_domains:
         for data_type in d_domains[agg]:
-            d_axis_domains['yaxis' + d_domains[agg][data_type]['Axis']] = d_domains[agg][data_type]['Bounds']
+            d_axis_domains['yaxis' + d_domains[agg][data_type]['Axis']] = dict(
+                                                                            domain=d_domains[agg][data_type]['Bounds'])
 
     # Create layout for plotly
-    layout = go.Layout(
+    layout = dict(
         title='URD Prediction vs. Actual',
         xaxis1=dict(title='', rangeslider=dict(thickness=0.015, borderwidth=1), type='date', showgrid=True),
-        yaxis1=dict(title='', showgrid=True, domain=[0.85, 1]),
-        yaxis2=dict(domain=[0.7, 0.8]),
-        yaxis3=dict(domain=[0.5, 0.65]),
-        yaxis4=dict(domain=[0.35, 0.45]),
-        yaxis5=dict(domain=[0.15, 0.3]),
-        yaxis6=dict(domain=[0, 0.1]),
         updatemenus=list([
             dict(
                 buttons=[vis_dict for vis_dict in l_vis_dicts],
                 type='buttons',
                 active=0,
             )]))
+
+    layout.update(d_axis_domains)  # Update layout with yaxis# keys
 
     # Plot with plotly
     fig = go.Figure(data=data, layout=layout)
