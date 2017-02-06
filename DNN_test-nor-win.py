@@ -29,8 +29,9 @@ def create_h2o_urd_model(urd_data):
     """
 
     # Start H2O and remove all objects
-    h2o.init(nthreads=3, max_mem_size='10G')
-    h2o.remove_all()
+    h2o.init(ip="192.168.0.21", strict_version_check=False)
+
+    # h2o.remove_all()
 
     # Define path to model
     urd_model_id = 'Python_URD_DNN_2006-2014'
