@@ -91,7 +91,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
         training, validation = train.split_frame(ratios=[0.8])
 
         # Define predictors and response
-        predictors = list(train.columns)[2:]
+        predictors = list(train.columns)[1:]
         response = list(train.columns)[0]
 
         # Run DNN

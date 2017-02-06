@@ -239,7 +239,7 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
 
     # Create layout for plotly
     layout = dict(
-        title='URD Prediction vs. Actual',
+        title='URD Predictions',
         xaxis1=dict(title='', rangeslider=dict(thickness=0.015, borderwidth=1), type='date', showgrid=True),
         updatemenus=list([
             dict(
