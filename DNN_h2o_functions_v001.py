@@ -53,7 +53,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     #         existing_model = f
 
     # Check if model exists
-    existing_model = None
+
     try:
         existing_model = h2o.load_model(save_path + urd_model_id)
     except exceptions.H2OResponseError:
