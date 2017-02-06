@@ -68,7 +68,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     else:
         skip_h2o = 'n'
 
-    if skip_h2o != 'n':  # Load model
+    if skip_h2o != 'n':  # Return existing model
 
         urd_model = existing_model
 
