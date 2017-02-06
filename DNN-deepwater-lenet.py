@@ -14,10 +14,10 @@ import mxnet as mx
 
 # Start h2o
 #h2o.init(nthreads=71, max_mem_size='30G')
-h2o.init(strict_version_check=False)
+h2o.init(ip="192.168.0.21",strict_version_check=False)
 
 # Remove all objects from h2o
-h2o.remove_all()
+# h2o.remove_all()
 
 # Import data to pandas dataframe
 data_full = pd.read_csv(
