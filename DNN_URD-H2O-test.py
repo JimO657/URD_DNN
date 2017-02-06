@@ -45,7 +45,7 @@ test_pd.drop('Date1', axis=1, inplace=True)
 test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'])
 
 # Define predictors and output
-predictors = list(train.columns)[2:]
+predictors = list(train.columns)[1:]
 output = list(train.columns)[0]
 
 # Run DNN

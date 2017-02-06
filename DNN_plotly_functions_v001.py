@@ -5,12 +5,13 @@ from datetime import datetime
 from tqdm import tqdm
 
 
-def aggregate_by_day_month_year(dataframe, aggregations):
+def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'):
     """Aggregates pandas DataFrames by day, month, and year using indices.
 
     Args:
-        dataframe (pandas DataFrame): DataFrame with 'Date1' column.
-        aggregations (set): set of strings defining which aggregations (Yearly, Monthly, Daily) to use
+        dataframe (pandas DataFrame): DataFrame with column that can be converted to pandas DatetimeIndex.
+        aggregations (set): set of strings defining which aggregations (Yearly, Monthly, Daily) to use.
+        date_column_name (string): Name of dataframe column to be converted to DatetimeIndex.
 
     Returns:
         dictionary: Maps words 'Daily', 'Monthly', and 'Yearly' to aggregated pandas DataFrame.
@@ -21,14 +22,15 @@ def aggregate_by_day_month_year(dataframe, aggregations):
     return_dict = {}
 
     # Create time index
-    times = pd.DatetimeIndex(dataframe.Date1)
+    times = pd.DatetimeIndex(dataframe[date_column_name])
 
     # Create daily aggregate with error column
     if 'Daily' in aggregations:
         pd_daily = dataframe.groupby([times.year, times.month, times.day]).sum() # Aggregate by day
         pd_daily.reset_index(inplace=True)  # Turns multi index into columns
         pd_daily = pd_daily.rename(columns={'level_0': 'Year', 'level_1': 'Month', 'level_2': 'Day'})
-        pd_daily['Date'] = pd_daily.apply(lambda row: datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
+        pd_daily['Date'] = pd_daily.apply(lambda row:
+                                          datetime(int(row['Year']), int(row['Month']), int(row['Day']), 1), axis=1)
         pd_daily['Error'] = pd_daily['Prediction'] - pd_daily['ACT']
 
         return_dict['Daily'] = pd_daily
@@ -68,10 +70,10 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
 
     """
 
-    length = len(aggregations)
+    length = 2 * len(aggregations)
     bar_ratio = 1 - scatter_ratio
-    scatter_thickness = (1 - 0.05 * (2 * length - 1)) / length * 2 * scatter_ratio
-    bar_thickness = (1 - 0.05 * (2 * length - 1)) / length * 2 * bar_ratio
+    scatter_thickness = (1 - padding * (length - 1)) / length * 2 * scatter_ratio
+    bar_thickness = (1 - padding * (length - 1)) / length * 2 * bar_ratio
 
     axis_bounds = {}
     counter = 0  # Counter variable for assigning axes
@@ -102,7 +104,7 @@ def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
     return axis_bounds
 
 
-def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregations=set(['Yearly'])):
+def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregations={'Yearly'}):
     """Creates html file to visualize real data and predictions for URD data using plotly.
 
     Args:
@@ -118,13 +120,13 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
     """
 
     # Create dictionary of aggregation type to actual dataframe
-    d_actual = aggregate_by_day_month_year(real_data, aggregations)
+    d_actual = aggregate_by_day_month_year(real_data, aggregations, 'Date1')
 
     # Create nested dictionary of applied weather year to aggregation type to prediction dataframe
     d_predictions = {}
     print("Aggregating data...")
     for prediction_year in tqdm(predictions):
-        d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year], aggregations)
+        d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year], aggregations, 'Date1')
 
     # Define axes and bounds to be used in plotly based on aggregations
     d_domains = assign_domains(aggregations)
@@ -148,16 +150,8 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
             # Define y-axis variables
             yaxis_error = 'y' + d_domains[time_frame]['Error']['Axis']
             yaxis_prediction = 'y' + d_domains[time_frame]['Prediction']['Axis']
-            # if time_frame == 'Yearly':
-            #     yaxis_prediction = 'y1'
-            #     yaxis_error = 'y2'
-            # elif time_frame == 'Monthly':
-            #     yaxis_prediction = 'y3'
-            #     yaxis_error = 'y4'
-            # elif time_frame == 'Daily':
-            #     yaxis_prediction = 'y5'
-            #     yaxis_error = 'y6'
 
+            # Create scatter trace for prediction
             d_traces[weather_year][time_frame]['Prediction'] = go.Scatter(
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Prediction'],
@@ -167,6 +161,8 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
                 yaxis=yaxis_prediction,
                 visible=initial_visibility,
             )
+
+            # Create bar trace for error
             d_traces[weather_year][time_frame]['Error'] = go.Bar(
                 x=d_predictions[weather_year][time_frame]['Date'],
                 y=d_predictions[weather_year][time_frame]['Error'],
@@ -235,28 +231,25 @@ def visualize_urd(real_data, predictions, filename='temp_plot.html', aggregation
         data = go.Data(l_data)
 
     # Create axes based on aggregations passed
-    d_axis_domains = {'y1':[], 'y2':[], 'y3':[], 'y4':[], 'y5':[], 'y6':[]}
+    d_axis_domains = {}
 
     for agg in d_domains:
         for data_type in d_domains[agg]:
-            d_axis_domains['yaxis' + d_domains[agg][data_type]['Axis']] = d_domains[agg][data_type]['Bounds']
+            d_axis_domains['yaxis' + d_domains[agg][data_type]['Axis']] = dict(
+                                                                            domain=d_domains[agg][data_type]['Bounds'])
 
     # Create layout for plotly
-    layout = go.Layout(
-        title='URD Prediction vs. Actual',
+    layout = dict(
+        title='URD Predictions',
         xaxis1=dict(title='', rangeslider=dict(thickness=0.015, borderwidth=1), type='date', showgrid=True),
-        yaxis1=dict(title='', showgrid=True, domain=[0.85, 1]),
-        yaxis2=dict(domain=[0.7, 0.8]),
-        yaxis3=dict(domain=[0.5, 0.65]),
-        yaxis4=dict(domain=[0.35, 0.45]),
-        yaxis5=dict(domain=[0.15, 0.3]),
-        yaxis6=dict(domain=[0, 0.1]),
         updatemenus=list([
             dict(
                 buttons=[vis_dict for vis_dict in l_vis_dicts],
                 type='buttons',
                 active=0,
             )]))
+
+    layout.update(d_axis_domains)  # Update layout with yaxis# keys
 
     # Plot with plotly
     fig = go.Figure(data=data, layout=layout)

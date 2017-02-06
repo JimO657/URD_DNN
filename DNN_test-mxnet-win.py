@@ -50,7 +50,7 @@ test_pd.drop('Date1', axis=1, inplace=True)
 test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test.h2o')
 
 # Define predictors and output
-predictors = list(train.columns)[2:]
+predictors = list(train.columns)[1:]
 output = list(train.columns)[0]
 
 ####### Starting Lenet part
@@ -162,7 +162,7 @@ def create_h2o_urd_model(urd_data):
         training, validation = train.split_frame(ratios=[0.8])
 
         # Define predictors and response
-        predictors = list(train.columns)[2:]
+        predictors = list(train.columns)[1:]
         response = list(train.columns)[0]
 
         # Run DNN
