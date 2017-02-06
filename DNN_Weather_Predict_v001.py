@@ -14,7 +14,7 @@ if __name__ == "__main__":
     if platform.system() == 'Linux':
         home_path = os.path.expanduser("~")
     elif platform.system() == 'Windows':
-        home_path = 'C:\\from-linux\\'
+        home_path = 'C:\\'
 
     # Import URD data
     urd_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/data/ExportFileR.csv')
@@ -49,4 +49,4 @@ if __name__ == "__main__":
         d_years_predictions[l_test_year[i]] = l_pd_test_data[i]
 
     # Plot using external .py file function
-    visualize_urd(data_full, d_years_predictions, aggregations=set(['Daily','Yearly', 'Monthly']))
+    visualize_urd(data_full, d_years_predictions, aggregations=set(['Daily', 'Yearly', 'Monthly']))
