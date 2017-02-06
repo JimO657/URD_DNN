@@ -107,29 +107,25 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     return urd_model
 
 
-def get_predictions(urd_model, l_test_data, l_test_names):
+def get_predictions(urd_model, d_test_data):
     """Creates predictions on test data using H2O model
 
-    Args:
-        urd_model (H2ODeepLearningEstimator): H2O model for prediction.
-        l_test_data (list): list of pandas DataFrames to predict on.
-        l_test_names (list): list of csv files corresponding to the DataFrames
+        Args:
+            urd_model (H2ODeepLearningEstimator): H2O model for prediction.
+            d_test_data (Dictionary): Dictionary with labels as keys and pandas DataFrames as values.
 
-    Returns:
-        list: List of pandas DataFrames containing predictions.
+        Returns:
+            list: List of pandas DataFrames containing predictions.
 
-    """
-
-    # Initialize list of predictions
-    predictions = []
+        """
 
     # Convert test data to H2OFrames and run predictions
-    for i in range(len(l_test_data)):
-        test_data = l_test_data[i]
-        test_data_no_date = test_data.drop('Date1', axis=1, inplace=False)
+    for label in d_test_data:
+        test_data_no_date = d_test_data[label].drop('Date1', axis=1, inplace=False)
         h2o_test = h2o.H2OFrame(test_data_no_date,
                                 column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],
-                                destination_frame=l_test_names[i] + "_Prediction")
-        predictions.append(urd_model.predict(h2o_test).as_data_frame())
+                                destination_frame="Weather" + label)
+        prediction = urd_model.predict(h2o_test).as_data_frame()
+        d_test_data[label]['Prediction'] = prediction
 
-    return predictions
+    return d_test_data
