@@ -7,15 +7,16 @@ import platform
 import sys
 from select import select
 from getpass import getuser
-# import time
+import time
 
 
-def create_h2o_urd_model(urd_data, urd_model_id='Python_URD_DNN_2006-2014' + getuser() + platform.system(), epochs=5000, hidden=[800, 800], stopping_rounds=5):
+def create_h2o_urd_model(urd_data, urd_model_id='Python_URD_DNN_2006-2014' + getuser() + platform.system(), ip="localhost", epochs=5000, hidden=[800, 800], stopping_rounds=5):
     """Creates an H2O model from URD data
 
     Args:
         urd_data (pandas DataFrame): URD data as DataFrame.
         urd_model_id (string): Name of model. Defaults to 'Python_URD_DNN_2006-2014[USER][OS]'
+        ip (string, optional): IP of H2O cluster to connect to
         epochs (float, optional): Number of epochs to pass to H2O estimator. Defaults to 5000.
         hidden (list, optional): Layers to pass to H2O estimator. Defaults to [800, 800]
         stopping_rounds (int, optional): Number of stopping rounds to pass to H2O estimator. Defaults to 5.
@@ -26,7 +27,7 @@ def create_h2o_urd_model(urd_data, urd_model_id='Python_URD_DNN_2006-2014' + get
     """
 
     # Start H2O
-    h2o.init(strict_version_check=False)
+    h2o.init(ip=ip, strict_version_check=False)
 
     # Get user
     user = getuser()
@@ -62,9 +63,10 @@ def create_h2o_urd_model(urd_data, urd_model_id='Python_URD_DNN_2006-2014' + get
                 skip_h2o = ""
                 print("\n")
 
-        # Check if model exists and prompt for overwrite WITHOUT timeout
+        # Skip prompt and force create model
         elif platform.system() == 'Windows':
-            skip_h2o = raw_input(prompt_for_skip)
+            # skip_h2o = raw_input(prompt_for_skip)
+            skip_h2o = 'n'
 
     else:
         skip_h2o = 'n'
