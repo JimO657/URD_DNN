@@ -3,8 +3,8 @@ import os
 import platform
 
 from DNN_plotly_functions_v001 import visualize_urd
-from DNN_h2o_functions_v001 import create_h2o_urd_model
-from DNN_h2o_functions_v001 import get_predictions
+from DNN_h2o_functions_v001 import create_h2o_urd_model, get_predictions
+from DNN_highcharts_functions_v001 import make_highcharts, visualize_urd_highcharts
 
 
 if __name__ == "__main__":
@@ -36,5 +36,8 @@ if __name__ == "__main__":
     # Get model predictions on test data, put directly in pandas DataFrames inside dictionary
     d_pd_test_data = get_predictions(model, d_pd_test_data)
 
-    # Plot using external .py file function
-    visualize_urd(data_full, d_pd_test_data, aggregations={'Yearly'})
+    # Plot with plotly using external .py file function
+    # visualize_urd(data_full, d_pd_test_data, aggregations={'Yearly'})
+
+    # Plot with highcharts using external .py file function
+    visualize_urd_highcharts(data_full, d_pd_test_data)
