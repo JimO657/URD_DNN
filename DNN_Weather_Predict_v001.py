@@ -31,7 +31,7 @@ if __name__ == "__main__":
         l_csv_test_data.append('ExportFileWeather_{}.csv'.format(str(i)))
 
     # Create dictionary mapping labels for weather years to corresponding pandas DataFrames
-    d_pd_test_data = {'.Actual': data_full}
+    d_pd_test_data = {'2016': data_full}
     for csv_test_data in l_csv_test_data:
         d_pd_test_data[csv_test_data[-8:-4]] = pd.read_csv(os.path.join(base_data_path, csv_test_data))
 
@@ -42,4 +42,5 @@ if __name__ == "__main__":
     # visualize_urd(data_full, d_pd_test_data, aggregations={'Yearly'})
 
     # Plot with highcharts using external .py file function
-    visualize_urd_highcharts(data_full, d_pd_test_data)
+    highcharts_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/Highcharts')
+    visualize_urd_highcharts(data_full, d_pd_test_data, highcharts_path)
