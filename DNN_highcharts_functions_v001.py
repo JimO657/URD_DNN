@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime
 from tqdm import tqdm
 from highcharts import Highchart
+import os
 
 
 def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'):
@@ -56,12 +57,130 @@ def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'
     return return_dict
 
 
-def make_highcharts(actual_data, predictions):
+def make_inverted_error_highcharts(predictions, folder_path):
     """Creates htmls with actual, prediction, and error plots with yearly aggregation.
 
     Args:
-        actual_data (dictionary): Real data with structure {Aggregation: pandas DataFrame}
-        predictions (dictionary): Predictions with structure {Year: {Aggregation: pandas DataFrame}}
+        actual_data (dictionary): Real data with structure {Aggregation: pandas DataFrame}.
+        predictions (dictionary): Predictions with structure {Year: {Aggregation: pandas DataFrame}}.
+        folder_path (string): Path to folder where html files are to be saved.
+
+    """
+
+    # Initialize dictionary
+    inverted_dict = {}
+
+    # Convert predictions to list of
+    for applied_weather_year in sorted(predictions):
+        df = predictions[applied_weather_year]['Yearly']
+        for predicted_year in df.Date:
+            try:
+                inverted_dict[str(predicted_year)].append([str(applied_weather_year), float(df.loc[df['Date'] == int(predicted_year)].Error)])
+            except KeyError:
+                inverted_dict[str(predicted_year)] = [[str(applied_weather_year), float(df.loc[df['Date'] == int(predicted_year)].Error)]]
+
+    # Create inverted error plots
+    for year in sorted(inverted_dict):
+
+        # Define chart dimensions
+        H = Highchart(width=1920, height=800)
+
+        # Initialize options
+        options = {
+            'chart': {
+                'type': 'column'
+            },
+            'title': {
+                'text': 'URD Fault Prediction Error for {} with offset weather applied (Only for years beyond training set)'.format(year)
+            },
+            'subtitle': {
+                'text': 'Click the links above to change the year predicted on.'
+            },
+            'xAxis': {
+                'type': 'category',
+                'title': {
+                    'text': ''
+                }
+            },
+            'yAxis': [{
+                'gridLineWidth': 0,
+                'title': {
+                    'text': '',
+                    'style': {
+                        'color': 'Highcharts.getOptions().colors[1]'
+                    }
+                },
+                'labels': {
+                    'format': '{value}',
+                    'style': {
+                        'color': 'Highcharts.getOptions().colors[1]'
+                    }
+                },
+                'opposite': False
+            }],
+            'tooltip': {
+                'shared': True,
+                'pointFormat': '{series.name}: <b>{point.y:.0f}</b> <br />'
+
+            },
+            'legend': {
+                'layout': 'vertical',
+                'align': 'left',
+                'x': 80,
+                'verticalAlign': 'top',
+                'y': 55,
+                'floating': True,
+                'backgroundColor': "(Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'"
+            },
+            'plotOptions': {
+                'series': {
+                    'borderWidth': 0,
+                    'dataLabels': {
+                        'enabled': False,
+                        'format': '{point.y:,.0f}',
+                        'formatter': 'function() {if (this.y != 0) {return Math.round(this.y)} else {return null;}}'
+                    }
+                }
+            },
+        }
+
+        # Plot with highcharts
+        H.set_dict_options(options)
+        H.add_data_set(inverted_dict[year], 'column', 'Error', dataLabels={'enabled': True}, color='#777', animation=False)
+
+        # Export plot
+        filename = os.path.join(folder_path, 'URD_Prediction_Errors_{}'.format(year))
+        try:
+            H.save_file(filename)
+        except IOError:  # Raised if folder_path directory doesn't exist
+            os.mkdir(folder_path)
+            H.save_file(filename)
+
+    # Open plot and replace beginning of file with links
+    headstring = "<center> "
+    for year in sorted(inverted_dict):
+        filename = os.path.join(folder_path, 'URD_Prediction_Errors_{}.html'.format(year))
+        headstring += '<a href="{0}.html" style="color: #555; font-size: 24px">{1}</a> &ensp;'.format(filename[:-5],
+                                                                                                      year)
+    headstring += " </center>"
+
+    for year in sorted(inverted_dict):
+        filename = os.path.join(folder_path, 'URD_Prediction_Errors_{}.html'.format(year))
+        with open(filename, 'r') as f:
+            content = f.read()
+        with open(filename, 'w') as f:
+            f.write(headstring)
+            f.write(content)
+
+
+def make_highcharts(actual_data, predictions, folder_path):
+    """Creates htmls with actual, prediction, and error plots with yearly aggregation.
+
+    Args:
+        actual_data (dictionary): Real data with structure {Aggregation: pandas DataFrame}.
+        predictions (dictionary): Predictions with structure {Year: {Aggregation: pandas DataFrame}}.
+        folder_path (string): Path to folder where html files are to be saved.
+
     """
 
     # Convert real data to list of lists for plotting with highcharts
@@ -71,7 +190,7 @@ def make_highcharts(actual_data, predictions):
     l_years = []
 
     # Create yearly plots
-    for year in predictions:
+    for year in sorted(predictions):
         df = predictions[year]['Yearly']
         if year == '.Actual':
             year = 'Actual'
@@ -86,15 +205,15 @@ def make_highcharts(actual_data, predictions):
                 'type': 'column'
             },
             'title': {
-                'text': 'Prediction with {} Weather'.format(year)
+                'text': 'URD Fault Predictions with {} Weather Applied to 2016 Data'.format(year)
             },
             'subtitle': {
-                'text': 'Click links above to change viewing year.'
+                'text': 'Click the links above to change the weather offset.'
             },
             'xAxis': {
                 'type': 'category',
                 'title': {
-                    'text': 'Year'
+                    'text': ''
                 }
             },
             'yAxis': [{
@@ -136,7 +255,7 @@ def make_highcharts(actual_data, predictions):
                         'formatter': 'function() {if (this.y != 0) {return Math.round(this.y)} else {return null;}}'
                     }
                 }
-            }
+            },
         }
 
         # Convert pandas dataframe to lists of lists for plotting with highcharts
@@ -150,17 +269,22 @@ def make_highcharts(actual_data, predictions):
         H.add_data_set(error, 'column', 'Error', dataLabels={'enabled': True}, color='#777', animation=False)
 
         # Export plot
-        filename = '/home/kimmmx/URD_Prediction_{}_Weather'.format(year)
-        H.save_file(filename)
+        filename = os.path.join(folder_path, 'URD_Prediction_{}_Weather'.format(year))
+        try:
+            H.save_file(filename)
+        except IOError:  # Raised if folder_path directory doesn't exist
+            os.mkdir(folder_path)
+            H.save_file(filename)
 
     # Open plot and replace beginning of file with links
-    headstring = ""
+    headstring = "<center> "
     for year in l_years:
-        filename = '/home/kimmmx/URD_Prediction_{}_Weather.html'.format(year)
-        headstring += '<a href="{0}.html" style="color: #555; font-size: 36px">{1}</a> &ensp;'.format(filename[:-5], year)
+        filename = os.path.join(folder_path, 'URD_Prediction_{}_Weather.html'.format(year))
+        headstring += '<a href="{0}.html" style="color: #555; font-size: 24px">{1}</a> &ensp;'.format(filename[:-5], year)
+    headstring += " </center>"
 
     for year in l_years:
-        filename = '/home/kimmmx/URD_Prediction_{}_Weather.html'.format(year)
+        filename = os.path.join(folder_path, 'URD_Prediction_{}_Weather.html'.format(year))
         with open(filename, 'r') as f:
             content = f.read()
         with open(filename, 'w') as f:
@@ -168,7 +292,7 @@ def make_highcharts(actual_data, predictions):
             f.write(content)
 
 
-def visualize_urd_highcharts(real_data, predictions, aggregations={'Yearly'}):
+def visualize_urd_highcharts(real_data, predictions, folder_path, aggregations={'Yearly'}):
     """Creates html files to visualize real data and predictions for URD data using highcharts
 
         Args:
@@ -187,4 +311,5 @@ def visualize_urd_highcharts(real_data, predictions, aggregations={'Yearly'}):
         d_predictions[prediction_year] = aggregate_by_day_month_year(predictions[prediction_year],
                                                                      aggregations, 'Date1')
 
-    make_highcharts(d_actual, d_predictions)
+    make_highcharts(d_actual, d_predictions, folder_path)
+    make_inverted_error_highcharts(d_predictions, folder_path)
