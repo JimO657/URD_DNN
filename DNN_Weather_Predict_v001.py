@@ -25,8 +25,10 @@ if __name__ == "__main__":
 
     # Define list of pandas DataFrames for model to predict on
     base_data_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/data')
-    l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
-                       'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+    l_csv_test_data = []  # 'ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
+                          # 'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+    for i in range(2000, 2016):
+        l_csv_test_data.append('ExportFileWeather_{}.csv'.format(str(i)))
 
     # Create dictionary mapping labels for weather years to corresponding pandas DataFrames
     d_pd_test_data = {'.Actual': data_full}

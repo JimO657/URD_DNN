@@ -10,11 +10,12 @@ from getpass import getuser
 # import time
 
 
-def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_rounds=5):
+def create_h2o_urd_model(urd_data, urd_model_id='Python_URD_DNN_2006-2014' + getuser() + platform.system(), epochs=5000, hidden=[800, 800], stopping_rounds=5):
     """Creates an H2O model from URD data
 
     Args:
         urd_data (pandas DataFrame): URD data as DataFrame.
+        urd_model_id (string): Name of model. Defaults to 'Python_URD_DNN_2006-2014[USER][OS]'
         epochs (float, optional): Number of epochs to pass to H2O estimator. Defaults to 5000.
         hidden (list, optional): Layers to pass to H2O estimator. Defaults to [800, 800]
         stopping_rounds (int, optional): Number of stopping rounds to pass to H2O estimator. Defaults to 5.
@@ -34,7 +35,7 @@ def create_h2o_urd_model(urd_data, epochs=5000, hidden=[800, 800], stopping_roun
     # current_time = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(time.time()))
 
     # Define path to model
-    urd_model_id = 'Python_URD_DNN_2006-2014' + user + platform.system()
+    # urd_model_id = 'Python_URD_DNN_2006-2014' + user + platform.system()
     save_path = 'H2O_Models/'
 
     # Try to load existing model
