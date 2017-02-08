@@ -56,53 +56,6 @@ def aggregate_by_day_month_year(dataframe, aggregations, date_column_name='Date'
     return return_dict
 
 
-def assign_domains(aggregations, padding=0.05, scatter_ratio = 0.75):
-    """Defines y-axis and domains for plotly layout
-
-    Args:
-        aggregations (set): Aggregations (Daily, Monthly, Yearly) to use in calculations.
-        padding (float, opt.): Space between plots as fraction of full plot's height. Default 0.05.
-        scatter_ratio (float, opt.): Fraction of each aggregate set of subplots dedicated to line subplot. Default 0.75.
-
-    Returns:
-        nested dictionary of structure: {Aggregation: {'Prediction' or 'Error': {'Axis':'#', 'Bounds': [#, #]}}}
-
-    """
-
-    length = 2 * len(aggregations)
-    bar_ratio = 1 - scatter_ratio
-    scatter_thickness = (1 - padding * (length - 1)) / length * 2 * scatter_ratio
-    bar_thickness = (1 - padding * (length - 1)) / length * 2 * bar_ratio
-
-    axis_bounds = {}
-    counter = 0  # Counter variable for assigning axes
-    bound = 0  # Bound variable
-
-    for agg in sorted(aggregations):
-
-        axis_bounds[agg] = {'Prediction': {}, 'Error': {}}
-
-        lower_bound = bound
-        bound += bar_thickness
-        upper_bound = bound
-
-        axis_bounds[agg]['Error']['Axis'] = str(counter + 1)
-        axis_bounds[agg]['Error']['Bounds'] = [lower_bound, upper_bound]
-
-        bound += padding
-        lower_bound = bound
-        bound += + scatter_thickness
-        upper_bound = bound
-
-        axis_bounds[agg]['Prediction']['Axis'] = str(counter + 2)
-        axis_bounds[agg]['Prediction']['Bounds'] = [lower_bound, upper_bound]
-
-        bound += padding
-        counter += 2
-
-    return axis_bounds
-
-
 def make_highcharts(actual_data, predictions):
     """Creates htmls with actual, prediction, and error plots with yearly aggregation.
 
@@ -125,7 +78,7 @@ def make_highcharts(actual_data, predictions):
         l_years.append(year)
 
         # Define chart dimensions
-        H = Highchart(width=1600, height=800)
+        H = Highchart(width=1920, height=800)
 
         # Initialize options
         options = {
@@ -145,39 +98,9 @@ def make_highcharts(actual_data, predictions):
                 }
             },
             'yAxis': [{
-                'labels': {
-                    'format': '{value}',
-                    'style': {
-                        'color': 'Highcharts.getOptions().colors[2]'
-                    }
-                },
-                'title': {
-                    'text': 'Actual',
-                    'style': {
-                        'color': 'Highcharts.getOptions().colors[2]'
-                    }
-                },
-                'opposite': True
-
-            }, {
                 'gridLineWidth': 0,
                 'title': {
-                    'text': 'Prediction',
-                    'style': {
-                        'color': 'Highcharts.getOptions().colors[0]'
-                    }
-                },
-                'labels': {
-                    'format': '{value}',
-                    'style': {
-                        'color': 'Highcharts.getOptions().colors[0]'
-                    }
-                }
-
-            }, {
-                'gridLineWidth': 0,
-                'title': {
-                    'text': 'Error',
+                    'text': '',
                     'style': {
                         'color': 'Highcharts.getOptions().colors[1]'
                     }
@@ -188,10 +111,11 @@ def make_highcharts(actual_data, predictions):
                         'color': 'Highcharts.getOptions().colors[1]'
                     }
                 },
-                'opposite': True
+                'opposite': False
             }],
             'tooltip': {
                 'shared': True,
+                'pointFormat': '{series.name}: <b>{point.y:.0f}</b> <br />'
 
             },
             'legend': {
@@ -203,6 +127,16 @@ def make_highcharts(actual_data, predictions):
                 'floating': True,
                 'backgroundColor': "(Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'"
             },
+            'plotOptions': {
+                'series': {
+                    'borderWidth': 0,
+                    'dataLabels': {
+                        'enabled': False,
+                        # 'format': '{point.y:,.0f}',
+                        'formatter': 'function() {if (this.y != 0) {return Math.round(this.y)} else {return null;}}'
+                    }
+                }
+            }
         }
 
         # Convert pandas dataframe to lists of lists for plotting with highcharts
@@ -211,9 +145,9 @@ def make_highcharts(actual_data, predictions):
 
         # Plot with highcharts
         H.set_dict_options(options)
-        H.add_data_set(actual, 'line', 'Actual', marker={'enabled': False})
-        H.add_data_set(prediction, 'line', 'Prediction', marker={'enabled': False}, dashStyle='dash')
-        H.add_data_set(error, 'column', 'Error')
+        H.add_data_set(actual, 'line', 'Actual', marker={'enabled': False}, color='#A00', animation=False)
+        H.add_data_set(prediction, 'line', 'Prediction', marker={'enabled': False}, dashStyle='dash', color='#00A', animation=False)
+        H.add_data_set(error, 'column', 'Error', dataLabels={'enabled': True}, color='#777', animation=False)
 
         # Export plot
         filename = '/home/kimmmx/URD_Prediction_{}_Weather'.format(year)
