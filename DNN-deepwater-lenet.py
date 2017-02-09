@@ -33,26 +33,23 @@ end_row = data_full[data_full['Date1'] == date_end].index.tolist()[0]
 
 # Create training data slice and convert to H2OFrame
 train_pd = data_full[start_row:end_row+1].copy()
-train_pd.drop(['Date1','Lightning','Snow','Precipitation'], axis=1, inplace=True)
+train_pd.drop(['Date1'], axis=1, inplace=True)
 
-#train_pd.
-
-
-print 'hi'
 print(train_pd.head())
 
-train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int'],destination_frame = 'train.h2o')
+train = h2o.H2OFrame(train_pd, column_types=['int', 'enum', 'real', 'real', 'int','int', 'int', 'int'],destination_frame = 'train_prep.h2o')
 training, validation = train.split_frame(ratios=[0.8], destination_frames = ['training.h2o','validation.h2o'])
 
 # Create test data slice and convert to H2OFrame
 test_pd = data_full[end_row + 1:].copy()
 test_pd.drop('Date1', axis=1, inplace=True)
-test = h2o.H2OFrame(test_pd, column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test.h2o')
+test = h2o.H2OFrame(test_pd,   column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test.h2o')
 
 # Define predictors and output
-predictors = list(train.columns)[2:]
+predictors = list(train.columns)[1:]
 output = list(train.columns)[0]
 
+print(predictors)
 ##############################
 ## begin defining lenet #####
 
@@ -129,73 +126,17 @@ model_id = 'Python_-lenet-URD_DNN_2006-2014'
 # #model = H2ODeepLearningEstimator(model_id=model_id, epochs=500, hidden=[800,800,800], activation ="Tanh", l1=0, l2=0,stopping_rounds=0)
 # model = H2ODeepLearningEstimator(model_id=model_id, epochs=500, hidden=[80], activation ="tanh",stopping_rounds=0)
 
-print'about to train '
+print('about to train ', model_id)
 
 # model = H2ODeepWaterEstimator(model_id=model_id,  network_definition_file=model_filename,  epochs=500,stopping_rounds=0)
 
 
-model = H2ODeepWaterEstimator(model_id=model_id, hidden=[800,800,800], activation ="Tanh",  epochs=500,stopping_rounds=0)
+model = H2ODeepWaterEstimator(model_id=model_id, hidden=[80,80], activation ="Tanh",  epochs=500, stopping_rounds=0)
+print("predictors are ",predictors)
+pred_rest=predictors[2]
+print(pred_rest)
+model.train(x=pred_rest, y=output, training_frame=training, validation_frame=validation)
 
-
-model.train(x=predictors, y=output, training_frame=training, validation_frame=validation)
-
-# # Save DNN model
-# save_path = os.path.join(os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/H2O_Models/')
-# try:
-#     h2o.save_model(model, path=save_path)
-# except exceptions.H2OServerError:
-#     os.remove(save_path + model_id)
-#     h2o.save_model(model, path=save_path)
-
-# # Run model prediction on original data
-# original_prediction = model.predict(test)
-
-# # Import weather data to pandas dataframe
-# data_weather = pd.read_csv(
-#                os.path.join(
-#                os.environ.get('HOME'), '0MyDataBases/40Python/URD_DNN/data/ExportFileWeather_2010.csv'))
-# data_weather_nodate = data_weather.drop('Date1', 1)
-# test_weather = h2o.H2OFrame(data_weather_nodate,
-#                             column_types=['int', 'enum', 'real', 'real', 'int', 'int', 'int', 'int'],destination_frame = 'test-weather.h2o')
-# weather_prediction = model.predict(test_weather)
-
-# # Add Year+Month column to full data
-# times = pd.DatetimeIndex(data_full.Date1)
-# pd_real_bymonth = data_full.groupby([times.year, times.month]).sum()
-# pd_real_bymonth.reset_index(inplace=True)
-# pd_real_bymonth = pd_real_bymonth.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
-# pd_real_bymonth['Date'] = pd_real_bymonth.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
-
-# # Add Year+Month column to weather data
-# times2 = pd.DatetimeIndex(data_weather.Date1)
-# pd_pred_bymonth = data_weather.groupby([times2.year, times2.month]).sum()
-# pd_pred_bymonth.reset_index(inplace=True)
-# pd_pred_bymonth = pd_pred_bymonth.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
-# pd_pred_bymonth['Date'] = pd_pred_bymonth.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
-
-# # Add Year+Month column to prediction
-# pd_weather_prediction = weather_prediction.as_data_frame()
-
-# times3 = pd.DatetimeIndex(data_full.Date1)
-# pd_predict = pd_weather_prediction.groupby([times3.year, times3.month]).sum()
-# pd_predict.reset_index(inplace=True)
-# pd_predict= pd_predict.rename(columns={'level_0': 'Year', 'level_1': 'Month'})
-# pd_predict['Date'] = pd_predict.apply(lambda row: datetime(int(row['Year']), int(row['Month']), 1), axis=1)
-
-# # Create dataframe for error between prediction and real data
-# error = pd_predict.predict - pd_real_bymonth.ACT
-
-# # Plot with plotly
-# trace1 = go.Scatter(x=pd_real_bymonth['Date'], y=pd_real_bymonth['ACT'], name='Real')
-# trace2 = go.Scatter(x=pd_predict['Date'], y=pd_predict['predict'], name='Predicted')
-# trace3 = go.Bar(x=pd_real_bymonth['Date'], y=error, name='Error')
-# data = [trace1, trace2, trace3]
-# layout = dict(title='URD Prediction vs. Actual',
-#               xaxis=dict(title='Date', rangeslider=dict(), type='date'),
-#               yaxis=dict(title='ACT'),
-#               )
-# fig = dict(data=data, layout=layout)
-# plotly.offline.plot(fig)
 
 # Define list of pandas DataFrames for model to predict on
 base_data_path = 'C:\\0MyDataBases\\40Python\URD_DNN\data_2015'
@@ -266,26 +207,6 @@ for weather_year in d_predictions:
                 name=time_frame + ' Error ' + weather_year,
                 legendgroup=time_frame
             )
-
-# Create traces for actual data
-# trace_yearly = go.Scatter(
-#     x=d_predictions['2016']['Yearly']['Date'],
-#     y=d_predictions['2016']['Yearly']['ACT'],
-#     name='Yearly Actual',
-#     legendgroup='Yearly',
-# )
-# trace_monthly = go.Scatter(
-#     x=d_predictions['2016']['Monthly']['Date'],
-#     y=d_predictions['2016']['Monthly']['ACT'],
-#     name='Monthly Actual',
-#     legendgroup='Monthly',
-# )
-# trace_daily = go.Scatter(
-#     x=d_predictions['2016']['Daily']['Date'],
-#     y=d_predictions['2016']['Daily']['ACT'],
-#     name='Daily Actual',
-#     legendgroup='Daily',
-# )
 
 # Create data and visibility dictionaries
 l_vis_dicts = []
