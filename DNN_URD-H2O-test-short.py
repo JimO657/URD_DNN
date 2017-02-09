@@ -153,14 +153,15 @@ write_log("about to start training")
 model = create_h2o_urd_model_l(data_full, ip="192.168.0.11",epochs=500, hidden=[800, 800], stopping_rounds=5)
 write_log("finished training")
 
-
 # Define list of pandas DataFrames for model to predict on
 base_data_path = os.path.join(home_path, '0MyDataBases/40Python/URD_DNN/data')
-l_csv_test_data = ['ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
-                   'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+l_csv_test_data = []  # 'ExportFileWeather_2015.csv', 'ExportFileWeather_2014.csv', 'ExportFileWeather_2013.csv',
+# 'ExportFileWeather_2012.csv', 'ExportFileWeather_2011.csv', 'ExportFileWeather_2010.csv']
+for i in range(2000, 2016):
+    l_csv_test_data.append('ExportFileWeather_{}.csv'.format(str(i)))
 
 # Create dictionary mapping labels for weather years to corresponding pandas DataFrames
-d_pd_test_data = {'.Actual': data_full}
+d_pd_test_data = {'2016': data_full}
 for csv_test_data in l_csv_test_data:
     d_pd_test_data[csv_test_data[-8:-4]] = pd.read_csv(os.path.join(base_data_path, csv_test_data))
 
