@@ -90,9 +90,9 @@ import h2o
 import os
 from h2o import exceptions
 from h2o.estimators.deeplearning import H2ODeepLearningEstimator
-import plotly
-import plotly.graph_objs as go
-from datetime import datetime
+# import plotly
+# import plotly.graph_objs as go
+# from datetime import datetime
 
 from h2o.estimators.deepwater import H2ODeepWaterEstimator
 
