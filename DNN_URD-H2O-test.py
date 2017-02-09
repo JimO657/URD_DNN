@@ -150,7 +150,7 @@ data_full = pd.read_csv(urd_path)
 
 write_log("about to start training")
 # Create H2O model using external .py file function
-model = create_h2o_urd_model_l(data_full, ip="192.168.0.11",epochs=500, hidden=[800, 800], stopping_rounds=5)
+model = create_h2o_urd_model_l(data_full, urd_model_id="Test-URD-MODEL" , epochs=500, hidden=[800, 800, 800], stopping_rounds=0)
 write_log("finished training")
 
 
